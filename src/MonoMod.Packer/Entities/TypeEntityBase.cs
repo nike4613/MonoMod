@@ -1,9 +1,12 @@
 ﻿using AsmResolver;
 using System.Collections.Immutable;
 
-namespace MonoMod.Packer.Entities {
-    internal abstract class TypeEntityBase : EntityBase {
-        protected TypeEntityBase(TypeEntityMap map) : base(map) {
+namespace MonoMod.Packer.Entities
+{
+    internal abstract class TypeEntityBase : EntityBase
+    {
+        protected TypeEntityBase(TypeEntityMap map) : base(map)
+        {
 
         }
 
@@ -11,9 +14,12 @@ namespace MonoMod.Packer.Entities {
 
 
         private TypeMergeMode lazyTypeMergeMode;
-        public TypeMergeMode TypeMergeMode {
-            get {
-                if (!HasState(EntityInitializationState.TypeMergeMode)) {
+        public TypeMergeMode TypeMergeMode
+        {
+            get
+            {
+                if (!HasState(EntityInitializationState.TypeMergeMode))
+                {
                     lazyTypeMergeMode = GetTypeMergeMode() ?? Map.Options.TypeMergeMode;
                     MarkState(EntityInitializationState.TypeMergeMode);
                 }
@@ -23,9 +29,12 @@ namespace MonoMod.Packer.Entities {
 
         protected abstract TypeMergeMode? GetTypeMergeMode();
 
-        public bool HasUnifiableBase {
-            get {
-                if (!HasState(EntityInitializationState.HasUnifiableBase)) {
+        public bool HasUnifiableBase
+        {
+            get
+            {
+                if (!HasState(EntityInitializationState.HasUnifiableBase))
+                {
                     SetFlag(EntityFlags.HasUnifiableBase, GetHasUnifiableBase());
                     MarkState(EntityInitializationState.HasUnifiableBase);
                 }
@@ -36,9 +45,12 @@ namespace MonoMod.Packer.Entities {
         protected abstract bool GetHasUnifiableBase();
 
         private TypeEntityBase? lazyBase;
-        public TypeEntityBase? BaseType {
-            get {
-                if (!HasState(EntityInitializationState.BaseType)) {
+        public TypeEntityBase? BaseType
+        {
+            get
+            {
+                if (!HasState(EntityInitializationState.BaseType))
+                {
                     lazyBase = GetBaseType();
                     MarkState(EntityInitializationState.BaseType);
                 }
@@ -50,9 +62,12 @@ namespace MonoMod.Packer.Entities {
         public virtual bool IsModuleType => Namespace is null && Name == "<Module>"; // TODO: is there a constant somewhere for this?
 
         private ImmutableArray<MethodEntityBase> lazyStaticMethods;
-        public ImmutableArray<MethodEntityBase> StaticMethods {
-            get {
-                if (lazyStaticMethods.IsDefault) {
+        public ImmutableArray<MethodEntityBase> StaticMethods
+        {
+            get
+            {
+                if (lazyStaticMethods.IsDefault)
+                {
                     ImmutableInterlocked.InterlockedInitialize(
                         ref lazyStaticMethods,
                         MakeStaticMethods()
@@ -65,9 +80,12 @@ namespace MonoMod.Packer.Entities {
         protected abstract ImmutableArray<MethodEntityBase> MakeStaticMethods();
 
         private ImmutableArray<MethodEntityBase> lazyInstanceMethods;
-        public ImmutableArray<MethodEntityBase> InstanceMethods {
-            get {
-                if (lazyInstanceMethods.IsDefault) {
+        public ImmutableArray<MethodEntityBase> InstanceMethods
+        {
+            get
+            {
+                if (lazyInstanceMethods.IsDefault)
+                {
                     ImmutableInterlocked.InterlockedInitialize(
                         ref lazyInstanceMethods,
                         MakeInstanceMethods()
@@ -80,9 +98,12 @@ namespace MonoMod.Packer.Entities {
         protected abstract ImmutableArray<MethodEntityBase> MakeInstanceMethods();
 
         private ImmutableArray<TypeEntityBase> lazyNestedTypes;
-        public ImmutableArray<TypeEntityBase> NestedTypes {
-            get {
-                if (lazyNestedTypes.IsDefault) {
+        public ImmutableArray<TypeEntityBase> NestedTypes
+        {
+            get
+            {
+                if (lazyNestedTypes.IsDefault)
+                {
                     ImmutableInterlocked.InterlockedInitialize(
                         ref lazyNestedTypes,
                         MakeNestedTypes()

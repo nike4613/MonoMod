@@ -7,14 +7,17 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace MonoMod.Packer.Entities {
+namespace MonoMod.Packer.Entities
+{
     [DebuggerDisplay($"{{{nameof(DebuggerDisplay)}(),nq}}")]
-    internal sealed class TypeEntity : TypeEntityBase {
+    internal sealed class TypeEntity : TypeEntityBase
+    {
         private string DebuggerDisplay() => Definition.FullName;
 
         public readonly TypeDefinition Definition;
 
-        public TypeEntity(TypeEntityMap map, TypeDefinition def) : base(map) {
+        public TypeEntity(TypeEntityMap map, TypeDefinition def) : base(map)
+        {
             Definition = def;
         }
 
@@ -24,11 +27,15 @@ namespace MonoMod.Packer.Entities {
         private UnifiedTypeEntity? lazyUnifiedType;
         public UnifiedTypeEntity UnifiedType => lazyUnifiedType ??= GetUnifiedType();
 
-        private UnifiedTypeEntity GetUnifiedType() {
-            if (Definition.DeclaringType is null) {
+        private UnifiedTypeEntity GetUnifiedType()
+        {
+            if (Definition.DeclaringType is null)
+            {
                 // we can just look up by name
                 return Map.ByName(Namespace, Name);
-            } else {
+            }
+            else
+            {
                 return Map
                     .Lookup(Definition.DeclaringType)
                     .GetUnifiedType()
@@ -39,17 +46,23 @@ namespace MonoMod.Packer.Entities {
 
         protected override EntityBase GetUnifiedCore() => UnifiedType;
 
-        protected override TypeMergeMode? GetTypeMergeMode() {
+        protected override TypeMergeMode? GetTypeMergeMode()
+        {
             return Map.GetTypeMergeMode(Definition);
         }
 
-        protected override TypeEntityBase? GetBaseType() {
-            if (Definition.BaseType is { } @base) {
-                if (Definition.IsTypeOf("System", "Object")) {
+        protected override TypeEntityBase? GetBaseType()
+        {
+            if (Definition.BaseType is { } @base)
+            {
+                if (Definition.IsTypeOf("System", "Object"))
+                {
                     Map.Diagnostics.ReportDiagnostic(ErrorCode.ERR_SystemObjectDefinitionHasBase, Definition);
                 }
                 return Map.GetEntity(@base);
-            } else {
+            }
+            else
+            {
                 return null;
             }
         }
@@ -57,9 +70,12 @@ namespace MonoMod.Packer.Entities {
         protected override bool GetHasUnifiableBase() => true;
 
         private ConstructorScanner? lazyCtorScanner;
-        public ConstructorScanner CtorScanner {
-            get {
-                if (lazyCtorScanner is null) {
+        public ConstructorScanner CtorScanner
+        {
+            get
+            {
+                if (lazyCtorScanner is null)
+                {
                     Interlocked.CompareExchange(
                         ref lazyCtorScanner,
                         new(Map, Definition),
@@ -81,7 +97,8 @@ namespace MonoMod.Packer.Entities {
                 : ImmutableArray<ModuleDefinition>.Empty;
 
         public new ImmutableArray<MethodEntity> StaticMethods => base.StaticMethods.CastArray<MethodEntity>();
-        protected override ImmutableArray<MethodEntityBase> MakeStaticMethods() {
+        protected override ImmutableArray<MethodEntityBase> MakeStaticMethods()
+        {
             return Definition.Methods
                         .Where(m => m.IsStatic)
                         .Select(CreateMethod)
@@ -90,7 +107,8 @@ namespace MonoMod.Packer.Entities {
         }
 
         public new ImmutableArray<MethodEntity> InstanceMethods => base.InstanceMethods.CastArray<MethodEntity>();
-        protected override ImmutableArray<MethodEntityBase> MakeInstanceMethods() {
+        protected override ImmutableArray<MethodEntityBase> MakeInstanceMethods()
+        {
             return Definition.Methods
                             .Where(m => !m.IsStatic)
                             .Select(CreateMethod)
@@ -99,7 +117,8 @@ namespace MonoMod.Packer.Entities {
         }
 
         public new ImmutableArray<TypeEntity> NestedTypes => base.NestedTypes.CastArray<TypeEntity>();
-        protected override ImmutableArray<TypeEntityBase> MakeNestedTypes() {
+        protected override ImmutableArray<TypeEntityBase> MakeNestedTypes()
+        {
             return Definition.NestedTypes
                             .Select(Map.Lookup)
                             .ToImmutableArray()

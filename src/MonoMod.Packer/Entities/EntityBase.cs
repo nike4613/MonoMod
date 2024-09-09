@@ -4,11 +4,14 @@ using MonoMod.Packer.Utilities;
 using MonoMod.Utils;
 using System.Collections.Immutable;
 
-namespace MonoMod.Packer.Entities {
-    internal abstract class EntityBase {
+namespace MonoMod.Packer.Entities
+{
+    internal abstract class EntityBase
+    {
         public readonly TypeEntityMap Map;
 
-        protected EntityBase(TypeEntityMap map) {
+        protected EntityBase(TypeEntityMap map)
+        {
             Map = map;
         }
 
@@ -18,7 +21,8 @@ namespace MonoMod.Packer.Entities {
         private EntityFlags flags;
 
         protected bool HasState(EntityInitializationState state) => updatingState.Has(state);
-        protected void MarkState(EntityInitializationState state) {
+        protected void MarkState(EntityInitializationState state)
+        {
             _ = InterlockedFlags.Set(ref updatingState, state);
         }
 
@@ -32,9 +36,12 @@ namespace MonoMod.Packer.Entities {
         protected abstract EntityBase GetUnifiedCore();
 
         private ImmutableArray<ModuleDefinition> lazyContributingModules;
-        public ImmutableArray<ModuleDefinition> ContributingModules {
-            get {
-                if (lazyContributingModules.IsDefault) {
+        public ImmutableArray<ModuleDefinition> ContributingModules
+        {
+            get
+            {
+                if (lazyContributingModules.IsDefault)
+                {
                     ImmutableInterlocked.InterlockedInitialize(
                         ref lazyContributingModules,
                         MakeContributingModules()

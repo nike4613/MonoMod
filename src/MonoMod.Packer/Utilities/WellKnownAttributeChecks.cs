@@ -1,7 +1,9 @@
 ﻿using AsmResolver.DotNet;
 
-namespace MonoMod.Packer.Utilities {
-    internal static class WellKnownAttributeChecks {
+namespace MonoMod.Packer.Utilities
+{
+    internal static class WellKnownAttributeChecks
+    {
         private const string AttributeNamespace = "MonoMod.Packer.Attributes";
 
         private const string TypeMergeModeAttrName = "TypeMergeModeAttribute";
@@ -10,38 +12,47 @@ namespace MonoMod.Packer.Utilities {
         private const string MergeLayoutIdenticalAttrName = "MergeLayoutIdenticalAttribute";
         private const string MergeAlwaysAttrName = "MergeAlwaysAttribute";
 
-        public static TypeMergeMode? GetDeclaredMergeMode(this IHasCustomAttribute type) {
+        public static TypeMergeMode? GetDeclaredMergeMode(this IHasCustomAttribute type)
+        {
             TypeMergeMode? result = null;
             // when resolving this, we return the most restricted of the found attributes
-            foreach (var attr in type.CustomAttributes) {
+            foreach (var attr in type.CustomAttributes)
+            {
                 var attrDeclType = attr.Constructor?.DeclaringType;
-                if (attrDeclType is null) {
+                if (attrDeclType is null)
+                {
                     continue;
                 }
 
-                if (attrDeclType.Namespace != AttributeNamespace) {
+                if (attrDeclType.Namespace != AttributeNamespace)
+                {
                     continue;
                 }
 
                 TypeMergeMode? thisValueResult = null;
-                switch (attrDeclType.Name?.Value) {
+                switch (attrDeclType.Name?.Value)
+                {
                     case TypeMergeModeAttrName:
                         var sig = attr.Signature;
                         // TODO: error logging?
-                        if (sig is null) {
+                        if (sig is null)
+                        {
                             continue;
                         }
-                        if (sig.FixedArguments.Count < 1) {
+                        if (sig.FixedArguments.Count < 1)
+                        {
                             continue;
                         }
                         var arg = sig.FixedArguments[0];
-                        if (arg.Element is not int ival) {
+                        if (arg.Element is not int ival)
+                        {
                             continue;
                         }
-                        if (ival is not (>= TypeMergeModeExtra.MinValue and <= TypeMergeModeExtra.MaxValue)) {
+                        if (ival is not (>= TypeMergeModeExtra.MinValue and <= TypeMergeModeExtra.MaxValue))
+                        {
                             continue;
                         }
-                        thisValueResult = (TypeMergeMode) ival;
+                        thisValueResult = (TypeMergeMode)ival;
                         break;
 
                     case DoNotMergeAttrName:
@@ -61,10 +72,13 @@ namespace MonoMod.Packer.Utilities {
                         continue;
                 }
 
-                if (result is null) {
+                if (result is null)
+                {
                     result = thisValueResult;
-                } else if (thisValueResult is { } val) {
-                    result = (TypeMergeMode) int.Min((int) result.Value, (int) val);
+                }
+                else if (thisValueResult is { } val)
+                {
+                    result = (TypeMergeMode)int.Min((int)result.Value, (int)val);
                 }
             }
 
@@ -75,38 +89,47 @@ namespace MonoMod.Packer.Utilities {
         private const string MergeExactBaseAttrName = "MergeExactBaseAttribute";
         private const string MergeMoreDerivedBaseAttrName = "MergeMoreDerivedBaseAttribute";
 
-        public static BaseTypeMergeMode? GetDeclaredBaseMergeMode(this IHasCustomAttribute type) {
+        public static BaseTypeMergeMode? GetDeclaredBaseMergeMode(this IHasCustomAttribute type)
+        {
             BaseTypeMergeMode? result = null;
             // when resolving this, we return the most restricted of the found attributes
-            foreach (var attr in type.CustomAttributes) {
+            foreach (var attr in type.CustomAttributes)
+            {
                 var attrDeclType = attr.Constructor?.DeclaringType;
-                if (attrDeclType is null) {
+                if (attrDeclType is null)
+                {
                     continue;
                 }
 
-                if (attrDeclType.Namespace != AttributeNamespace) {
+                if (attrDeclType.Namespace != AttributeNamespace)
+                {
                     continue;
                 }
 
                 BaseTypeMergeMode? thisValueResult = null;
-                switch (attrDeclType.Name?.Value) {
+                switch (attrDeclType.Name?.Value)
+                {
                     case BaseTypeMergeModeAttrName:
                         var sig = attr.Signature;
                         // TODO: error logging?
-                        if (sig is null) {
+                        if (sig is null)
+                        {
                             continue;
                         }
-                        if (sig.FixedArguments.Count < 1) {
+                        if (sig.FixedArguments.Count < 1)
+                        {
                             continue;
                         }
                         var arg = sig.FixedArguments[0];
-                        if (arg.Element is not int ival) {
+                        if (arg.Element is not int ival)
+                        {
                             continue;
                         }
-                        if (ival is not (>= BaseTypeMergeModeExtra.MinValue and <= BaseTypeMergeModeExtra.MaxValue)) {
+                        if (ival is not (>= BaseTypeMergeModeExtra.MinValue and <= BaseTypeMergeModeExtra.MaxValue))
+                        {
                             continue;
                         }
-                        thisValueResult = (BaseTypeMergeMode) ival;
+                        thisValueResult = (BaseTypeMergeMode)ival;
                         break;
 
                     case MergeExactBaseAttrName:
@@ -120,10 +143,13 @@ namespace MonoMod.Packer.Utilities {
                         continue;
                 }
 
-                if (result is null) {
+                if (result is null)
+                {
                     result = thisValueResult;
-                } else if (thisValueResult is { } val) {
-                    result = (BaseTypeMergeMode) int.Min((int) result.Value, (int) val);
+                }
+                else if (thisValueResult is { } val)
+                {
+                    result = (BaseTypeMergeMode)int.Min((int)result.Value, (int)val);
                 }
             }
 

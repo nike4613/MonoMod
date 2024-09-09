@@ -5,14 +5,17 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace MonoMod.Packer.Entities {
+namespace MonoMod.Packer.Entities
+{
     [DebuggerDisplay($"{{{nameof(DebuggerDisplay)}(),nq}}")]
-    internal sealed class MethodEntity : MethodEntityBase {
+    internal sealed class MethodEntity : MethodEntityBase
+    {
         private string DebuggerDisplay() => Definition.ToString();
 
         public readonly MethodDefinition Definition;
 
-        public MethodEntity(TypeEntityMap map, MethodDefinition def) : base(map) {
+        public MethodEntity(TypeEntityMap map, MethodDefinition def) : base(map)
+        {
             Definition = def;
         }
 
@@ -21,14 +24,18 @@ namespace MonoMod.Packer.Entities {
         public TypeEntity DeclaringType => Map.Lookup(Definition.DeclaringType!);
 
         public new ImmutableArray<TypeEntity> TypesInSignature => base.TypesInSignature.CastArray<TypeEntity>();
-        protected override ImmutableArray<TypeEntityBase> MakeTypesInSignatureCore() {
-            if (Definition.Signature is { } sig) {
+        protected override ImmutableArray<TypeEntityBase> MakeTypesInSignatureCore()
+        {
+            if (Definition.Signature is { } sig)
+            {
                 return Map
                     .RentTypeInSigBuilder()
                     .Visit(sig)
                     .ToImmutableAndReturn()
                     .CastArray<TypeEntityBase>();
-            } else {
+            }
+            else
+            {
                 return ImmutableArray<TypeEntity>.Empty.CastArray<TypeEntityBase>();
             }
         }
@@ -39,7 +46,8 @@ namespace MonoMod.Packer.Entities {
                 : ImmutableArray<ModuleDefinition>.Empty;
 
         private UnifiedMethodEntity? lazyUnified;
-        public new UnifiedMethodEntity GetUnified() {
+        public new UnifiedMethodEntity GetUnified()
+        {
             if (Volatile.Read(ref lazyUnified) is { } result)
                 return result;
             // this is SLOW

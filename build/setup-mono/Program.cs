@@ -144,7 +144,7 @@ var mdhExe = Path.Combine(mdhDir, "mdh");
     {
         mdhExe += ".exe";
     }
-    
+
     // mark it as executable on non-windows
     if (!Env.IsWindows)
     {
@@ -177,7 +177,7 @@ var resolutionContext = new ResolutionContext();
     {
         using var cacheCtx = new SourceCacheContext();
         var result = await pkgByIdResource.CopyNupkgToStreamAsync(
-            pkgName, NuGetVersion.Parse(pkgVer), 
+            pkgName, NuGetVersion.Parse(pkgVer),
             file, cacheCtx,
             NullLogger.Instance, default);
 
@@ -194,8 +194,8 @@ var resolutionContext = new ResolutionContext();
             file,
             new PackagePathResolver(pkgDir, true),
             new PackageExtractionContext(
-                PackageSaveMode.Files, XmlDocFileSaveMode.Skip, 
-                ClientPolicyContext.GetClientPolicy(nugetSettings, NullLogger.Instance), 
+                PackageSaveMode.Files, XmlDocFileSaveMode.Skip,
+                ClientPolicyContext.GetClientPolicy(nugetSettings, NullLogger.Instance),
                 NullLogger.Instance),
             default);
     }

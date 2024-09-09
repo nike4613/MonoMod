@@ -10,8 +10,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
-namespace MonoMod.Packer.Utilities {
-    internal sealed class ConstructorScanner {
+namespace MonoMod.Packer.Utilities
+{
+    internal sealed class ConstructorScanner
+    {
         private readonly TypeEntityMap map;
         private readonly TypeDefinition type;
         private readonly Dictionary<FieldDefinition, FieldInitializer?> fieldInitializers = new();
@@ -21,14 +23,19 @@ namespace MonoMod.Packer.Utilities {
         private bool hasScannedStatic;
         private bool hasScannedInstance;
 
-        public ConstructorScanner(TypeEntityMap map, TypeDefinition type) {
+        public ConstructorScanner(TypeEntityMap map, TypeDefinition type)
+        {
             this.map = map;
             this.type = type;
 
-            foreach (var field in type.Fields) {
-                if (field.IsStatic) {
+            foreach (var field in type.Fields)
+            {
+                if (field.IsStatic)
+                {
                     hasStaticFields = true;
-                } else {
+                }
+                else
+                {
                     hasInstanceFields = true;
                 }
 
@@ -38,42 +45,58 @@ namespace MonoMod.Packer.Utilities {
         }
 
         // if true but null, then we found what look like multiple conflicting initializers
-        public bool TryGetInitializer(FieldDefinition field, out FieldInitializer? initializer) {
+        public bool TryGetInitializer(FieldDefinition field, out FieldInitializer? initializer)
+        {
             Helpers.DAssert(field.DeclaringType == type);
 
-            if (field.IsStatic) {
+            if (field.IsStatic)
+            {
                 ScanStatic();
-            } else {
+            }
+            else
+            {
                 ScanInstance();
             }
 
             var lockTaken = false;
-            try {
-                if ((!hasScannedInstance && hasInstanceFields) || (!hasScannedStatic && hasStaticFields)) {
+            try
+            {
+                if ((!hasScannedInstance && hasInstanceFields) || (!hasScannedStatic && hasStaticFields))
+                {
                     // we need to lock, because the dict might be modified
                     Monitor.Enter(fieldInitializers, ref lockTaken);
                 }
 
-                if (fieldInitializers.TryGetValue(field, out initializer)) {
+                if (fieldInitializers.TryGetValue(field, out initializer))
+                {
                     return true;
-                } else {
+                }
+                else
+                {
                     return false;
                 }
 
-            } finally {
-                if (lockTaken) {
+            }
+            finally
+            {
+                if (lockTaken)
+                {
                     Monitor.Exit(fieldInitializers);
                 }
             }
         }
 
-        private void ScanStatic() {
-            if (hasScannedStatic) {
+        private void ScanStatic()
+        {
+            if (hasScannedStatic)
+            {
                 return;
             }
 
-            lock (fieldInitializers) {
-                if (hasScannedStatic) {
+            lock (fieldInitializers)
+            {
+                if (hasScannedStatic)
+                {
                     return;
                 }
 
@@ -82,13 +105,17 @@ namespace MonoMod.Packer.Utilities {
             }
         }
 
-        private void ScanInstance() {
-            if (hasScannedInstance) {
+        private void ScanInstance()
+        {
+            if (hasScannedInstance)
+            {
                 return;
             }
 
-            lock (fieldInitializers) {
-                if (hasScannedInstance) {
+            lock (fieldInitializers)
+            {
+                if (hasScannedInstance)
+                {
                     return;
                 }
 
@@ -97,15 +124,18 @@ namespace MonoMod.Packer.Utilities {
             }
         }
 
-        private void ScanStaticCore() {
+        private void ScanStaticCore()
+        {
             var cctor = type.GetStaticConstructor();
-            if (cctor is null) {
+            if (cctor is null)
+            {
                 // no cctor, no more work to do
                 return;
             }
 
             var body = cctor.CilMethodBody;
-            if (body is null) {
+            if (body is null)
+            {
                 // cctor has no body??
                 map.Diagnostics.ReportDiagnostic(Diagnostics.ErrorCode.WRN_CtorHasNoIlBody, cctor);
                 return;
@@ -114,13 +144,16 @@ namespace MonoMod.Packer.Utilities {
             ScanCtorForFieldInitializers(body, CilOpCodes.Stsfld, allowDuplicate: false);
         }
 
-        private void ScanInstanceCore() {
+        private void ScanInstanceCore()
+        {
             // note: we actually want to scan all ctors, because Roslyn will duplicate initialization code into all declared ctors
             var ctors = type.Methods.Where(m => !m.IsStatic && m.IsConstructor);
 
-            foreach (var ctor in ctors) {
+            foreach (var ctor in ctors)
+            {
                 var body = ctor.CilMethodBody;
-                if (body is null) {
+                if (body is null)
+                {
                     map.Diagnostics.ReportDiagnostic(Diagnostics.ErrorCode.WRN_CtorHasNoIlBody, ctor);
                     continue;
                 }
@@ -130,7 +163,8 @@ namespace MonoMod.Packer.Utilities {
             }
         }
 
-        private void ScanCtorForFieldInitializers(CilMethodBody body, CilOpCode stfldOp, bool allowDuplicate) {
+        private void ScanCtorForFieldInitializers(CilMethodBody body, CilOpCode stfldOp, bool allowDuplicate)
+        {
             Helpers.DAssert(stfldOp == CilOpCodes.Stfld || stfldOp == CilOpCodes.Stsfld);
 
             // When we scan, we bascially want to scan for the value to store to a stfld opcode (i.e. we're scanning stack ops in a fairly simple manner)
@@ -141,25 +175,35 @@ namespace MonoMod.Packer.Utilities {
             // this stack holds the index of the first instruction in the "chain" that produced the value it represents
             var currentStack = ImmutableStack.Create<int>();
 
-            for (var i = 0; i < body.Instructions.Count; i++) {
+            for (var i = 0; i < body.Instructions.Count; i++)
+            {
                 var instr = body.Instructions[i];
-                if (stackDict.TryGetValue(instr.Offset, out var incoming)) {
-                    if (currentStack is not null) {
+                if (stackDict.TryGetValue(instr.Offset, out var incoming))
+                {
+                    if (currentStack is not null)
+                    {
                         incoming.Add(currentStack);
                     }
 
-                    if (incoming.Count == 0) {
+                    if (incoming.Count == 0)
+                    {
                         Helpers.Assert(false, $"empty incoming? {instr}, {body.Owner.FullName}");
-                    } else if (incoming.Count == 1) {
+                    }
+                    else if (incoming.Count == 1)
+                    {
                         currentStack = incoming[0];
-                    } else {
+                    }
+                    else
+                    {
                         // incoming.Count > 1
                         var arrs = incoming.Select(s => s.ToArray()).ToArray();
                         Helpers.Assert(arrs.All(a => a.Length == arrs[0].Length));
                         var resultStack = ImmutableStack.Create<int>();
-                        for (var j = arrs[0].Length - 1; j >= 0; j--) {
+                        for (var j = arrs[0].Length - 1; j >= 0; j--)
+                        {
                             var min = int.MaxValue;
-                            foreach (var a in arrs) {
+                            foreach (var a in arrs)
+                            {
                                 min = int.Min(a[j], min);
                             }
                             resultStack = resultStack.Push(min);
@@ -170,14 +214,17 @@ namespace MonoMod.Packer.Utilities {
 
                 Helpers.Assert(currentStack is not null);
 
-                if (instr.OpCode == CilOpCodes.Call && instr.Operand is IMethodDescriptor method) {
-                    if (map.ExternalMdResolver.ResolveMethod(method) is { IsConstructor: true }) {
+                if (instr.OpCode == CilOpCodes.Call && instr.Operand is IMethodDescriptor method)
+                {
+                    if (map.ExternalMdResolver.ResolveMethod(method) is { IsConstructor: true })
+                    {
                         // this is a 'call' ins to a ctor; we're done with the currently scanned ctor
                         return;
                     }
                 }
 
-                if (instr.OpCode == stfldOp) {
+                if (instr.OpCode == stfldOp)
+                {
                     Helpers.DAssert(instr.OpCode.StackBehaviourPop is CilStackBehaviour.Pop1 or CilStackBehaviour.PopRef_Pop1);
                     // top of stack is what we actually care about, always
                     // if this is a stfld instead of a stsfld, the next op is the ldarg.0, but we *probably* don't need to care about that
@@ -186,7 +233,8 @@ namespace MonoMod.Packer.Utilities {
 
                 int? leastChainedPush = null;
                 // handle stack pops
-                switch (instr.OpCode.StackBehaviourPop) {
+                switch (instr.OpCode.StackBehaviourPop)
+                {
                     case CilStackBehaviour.Pop0:
                         break;
                     // pop 1
@@ -221,7 +269,8 @@ namespace MonoMod.Packer.Utilities {
                         break;
                     // pop all
                     case CilStackBehaviour.PopAll:
-                        while (!currentStack.IsEmpty) {
+                        while (!currentStack.IsEmpty)
+                        {
                             currentStack = currentStack.Pop(out var v);
                             leastChainedPush = int.Min(leastChainedPush ?? int.MaxValue, v);
                         }
@@ -229,7 +278,8 @@ namespace MonoMod.Packer.Utilities {
                     // pop var amount
                     case CilStackBehaviour.VarPop:
                         var popAmount = instr.GetStackPopCount(body);
-                        for (; popAmount > 0; popAmount--) {
+                        for (; popAmount > 0; popAmount--)
+                        {
                             currentStack = currentStack.Pop(out var v);
                             leastChainedPush = int.Min(leastChainedPush ?? int.MaxValue, v);
                         }
@@ -240,11 +290,13 @@ namespace MonoMod.Packer.Utilities {
                 }
 
                 var pushAddr = leastChainedPush ?? i;
-                for (var j = instr.GetStackPushCount(); j > 0; j--) {
+                for (var j = instr.GetStackPushCount(); j > 0; j--)
+                {
                     currentStack = currentStack.Push(pushAddr);
                 }
 
-                switch (instr.OpCode.FlowControl) {
+                switch (instr.OpCode.FlowControl)
+                {
                     case CilFlowControl.Branch:
                         var keepStack = false;
                         goto HandleBranch;
@@ -252,27 +304,32 @@ namespace MonoMod.Packer.Utilities {
                         keepStack = true;
                         goto HandleBranch;
 
-                        HandleBranch:
-                        var targetOffsets = instr.Operand switch {
+                    HandleBranch:
+                        var targetOffsets = instr.Operand switch
+                        {
                             ICilLabel label => new[] { label.Offset },
                             IList<ICilLabel> labels => labels.Select(l => l.Offset),
                             int offs => new[] { offs },
-                            sbyte offs => new[] { (int) offs },
+                            sbyte offs => new[] { (int)offs },
                             _ => throw new InvalidOperationException()
                         };
 
-                        foreach (var offs in targetOffsets) {
-                            if (offs <= instr.Offset) {
+                        foreach (var offs in targetOffsets)
+                        {
+                            if (offs <= instr.Offset)
+                            {
                                 // this is a backward jump; fail out
                                 map.Diagnostics.ReportDiagnostic(Diagnostics.ErrorCode.WRN_BackwardJumpInFieldInitializer, body.Owner);
                                 return; // TODO: is there some way to recover from this? there should be, right?
                             }
-                            if (!stackDict.TryGetValue(offs, out var list)) {
+                            if (!stackDict.TryGetValue(offs, out var list))
+                            {
                                 stackDict.Add(offs, list = new());
                             }
                             list.Add(currentStack);
                         }
-                        if (!keepStack) {
+                        if (!keepStack)
+                        {
                             currentStack = null;
                         }
                         break;
@@ -289,33 +346,40 @@ namespace MonoMod.Packer.Utilities {
             }
         }
 
-        private object? TranslateOperand(CilInstruction ins) {
+        private object? TranslateOperand(CilInstruction ins)
+        {
             var operand = ins.Operand;
-            if (operand is null) {
+            if (operand is null)
+            {
                 return null;
             }
 
-            if (operand is MetadataToken) {
+            if (operand is MetadataToken)
+            {
                 throw new InvalidOperationException("the fuck am I supposed to do with a MetadataToken here?");
             }
 
-            if (operand is IMemberDescriptor md) {
+            if (operand is IMemberDescriptor md)
+            {
                 return ComparableSignature.CreateComparableInstance(map, md);
             }
 
             int offset;
 
-            if (operand is ICilLabel label) {
+            if (operand is ICilLabel label)
+            {
                 offset = label.Offset;
                 goto ResolveLabel;
             }
 
-            if (operand is int i && ins.OpCode.OperandType is CilOperandType.InlineBrTarget) {
+            if (operand is int i && ins.OpCode.OperandType is CilOperandType.InlineBrTarget)
+            {
                 offset = i;
                 goto ResolveLabel;
             }
 
-            if (operand is sbyte s && ins.OpCode.OperandType is CilOperandType.ShortInlineBrTarget) {
+            if (operand is sbyte s && ins.OpCode.OperandType is CilOperandType.ShortInlineBrTarget)
+            {
                 offset = s;
                 goto ResolveLabel;
             }
@@ -333,7 +397,8 @@ namespace MonoMod.Packer.Utilities {
             return offset - ins.Offset;
         }
 
-        private void ProcessInitializer(CilMethodBody body, int initializerStart, int ldThisHint, int initializerEnd, bool allowDuplicate) {
+        private void ProcessInitializer(CilMethodBody body, int initializerStart, int ldThisHint, int initializerEnd, bool allowDuplicate)
+        {
             var targetFld = body.Instructions[initializerEnd].Operand as IFieldDescriptor;
             var resolvedField = map.MdResolver.ResolveField(targetFld);
             Helpers.Assert(resolvedField is not null);
@@ -341,7 +406,8 @@ namespace MonoMod.Packer.Utilities {
 
             var numInsns = initializerEnd - initializerStart; // note: initializerStart is inclusive
             var builder = ImmutableArray.CreateBuilder<(CilOpCode, object?)>(numInsns);
-            for (var i = initializerStart; i < initializerEnd; i++) {
+            for (var i = initializerStart; i < initializerEnd; i++)
+            {
                 var ins = body.Instructions[i];
                 builder.Add((ins.OpCode, TranslateOperand(ins)));
             }
@@ -350,21 +416,30 @@ namespace MonoMod.Packer.Utilities {
 
             // TODO: make this completely ignore duplicates found in the same ctor
             // that probably means that we're looking at an explicit cctor, and the second isn't actually an initializer
-            if (fieldInitializers.TryGetValue(resolvedField, out var existing)) {
+            if (fieldInitializers.TryGetValue(resolvedField, out var existing))
+            {
                 // there is an existing; what do we do?
-                if (allowDuplicate) {
+                if (allowDuplicate)
+                {
                     // we allow duplicate initializers, but must unify them
-                    if (initializer.Equals(existing)) {
+                    if (initializer.Equals(existing))
+                    {
                         // the initializers are equivalent, we're good
-                    } else {
+                    }
+                    else
+                    {
                         // the initializers are not equivalent; we must explicitly set to null
                         fieldInitializers[resolvedField] = null;
                     }
-                } else {
+                }
+                else
+                {
                     // we don't allow duplicates here, but found a duplicate; explicitly set it to null
                     fieldInitializers[resolvedField] = null;
                 }
-            } else {
+            }
+            else
+            {
                 // no existing, just add it
                 fieldInitializers.Add(resolvedField, initializer);
             }

@@ -256,10 +256,10 @@ namespace MonoMod.Utils
 
             goto FetchModules;
 
-            RefetchModules:
+        RefetchModules:
             refetchingModules = true;
 
-            FetchModules:
+        FetchModules:
 
             if (nullifyModules)
                 modules = null;

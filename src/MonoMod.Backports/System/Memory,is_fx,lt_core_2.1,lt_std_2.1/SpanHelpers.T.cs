@@ -100,21 +100,21 @@ namespace System
             }
             return -1;
 
-            Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
+        Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
             return (int)(byte*)index;
-            Found1:
+        Found1:
             return (int)(byte*)(index + 1);
-            Found2:
+        Found2:
             return (int)(byte*)(index + 2);
-            Found3:
+        Found3:
             return (int)(byte*)(index + 3);
-            Found4:
+        Found4:
             return (int)(byte*)(index + 4);
-            Found5:
+        Found5:
             return (int)(byte*)(index + 5);
-            Found6:
+        Found6:
             return (int)(byte*)(index + 6);
-            Found7:
+        Found7:
             return (int)(byte*)(index + 7);
         }
 
@@ -183,21 +183,21 @@ namespace System
             }
             return -1;
 
-            Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
+        Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
             return index;
-            Found1:
+        Found1:
             return index + 1;
-            Found2:
+        Found2:
             return index + 2;
-            Found3:
+        Found3:
             return index + 3;
-            Found4:
+        Found4:
             return index + 4;
-            Found5:
+        Found5:
             return index + 5;
-            Found6:
+        Found6:
             return index + 6;
-            Found7:
+        Found7:
             return index + 7;
         }
 
@@ -266,21 +266,21 @@ namespace System
             }
             return -1;
 
-            Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
+        Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
             return index;
-            Found1:
+        Found1:
             return index + 1;
-            Found2:
+        Found2:
             return index + 2;
-            Found3:
+        Found3:
             return index + 3;
-            Found4:
+        Found4:
             return index + 4;
-            Found5:
+        Found5:
             return index + 5;
-            Found6:
+        Found6:
             return index + 6;
-            Found7:
+        Found7:
             return index + 7;
         }
 
@@ -395,21 +395,21 @@ namespace System
             }
             return -1;
 
-            Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
+        Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
             return length;
-            Found1:
+        Found1:
             return length + 1;
-            Found2:
+        Found2:
             return length + 2;
-            Found3:
+        Found3:
             return length + 3;
-            Found4:
+        Found4:
             return length + 4;
-            Found5:
+        Found5:
             return length + 5;
-            Found6:
+        Found6:
             return length + 6;
-            Found7:
+        Found7:
             return length + 7;
         }
 
@@ -477,21 +477,21 @@ namespace System
             }
             return -1;
 
-            Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
+        Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
             return length;
-            Found1:
+        Found1:
             return length + 1;
-            Found2:
+        Found2:
             return length + 2;
-            Found3:
+        Found3:
             return length + 3;
-            Found4:
+        Found4:
             return length + 4;
-            Found5:
+        Found5:
             return length + 5;
-            Found6:
+        Found6:
             return length + 6;
-            Found7:
+        Found7:
             return length + 7;
         }
 
@@ -559,21 +559,21 @@ namespace System
             }
             return -1;
 
-            Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
+        Found: // Workaround for https://github.com/dotnet/coreclr/issues/13549
             return length;
-            Found1:
+        Found1:
             return length + 1;
-            Found2:
+        Found2:
             return length + 2;
-            Found3:
+        Found3:
             return length + 3;
-            Found4:
+        Found4:
             return length + 4;
-            Found5:
+        Found5:
             return length + 5;
-            Found6:
+        Found6:
             return length + 6;
-            Found7:
+        Found7:
             return length + 7;
         }
 
@@ -653,10 +653,10 @@ namespace System
                 length--;
             }
 
-            Equal:
+        Equal:
             return true;
 
-            NotEqual: // Workaround for https://github.com/dotnet/coreclr/issues/13549
+        NotEqual: // Workaround for https://github.com/dotnet/coreclr/issues/13549
             return false;
         }
 

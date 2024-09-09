@@ -292,7 +292,7 @@ namespace MonoMod.Utils
                 checkTryEndEarly = false;
                 continue;
 
-                SkipEmit:
+            SkipEmit:
                 checkTryEndEarly = true;
                 continue;
             }

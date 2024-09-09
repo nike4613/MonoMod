@@ -1,5 +1,7 @@
-﻿namespace MonoMod.Packer {
-    public enum MemberMergeMode {
+﻿namespace MonoMod.Packer
+{
+    public enum MemberMergeMode
+    {
         UnifyIdentical,
     }
 }

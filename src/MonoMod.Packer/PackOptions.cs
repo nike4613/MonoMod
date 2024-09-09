@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using MonoMod.Utils;
 
-namespace MonoMod.Packer {
-    public sealed record PackOptions {
+namespace MonoMod.Packer
+{
+    public sealed record PackOptions
+    {
         public static PackOptions Default { get; } = new();
 
         public AssemblyDescriptor DefaultCorLib { get; init; } = KnownCorLibs.SystemRuntime_v6_0_0_0;
@@ -24,18 +26,23 @@ namespace MonoMod.Packer {
         public MemberMergeMode MemberMergeMode { get; init; } = MemberMergeMode.UnifyIdentical;
 
         public bool ExcludeCorelib { get; init; } = true;
-        
+
         public bool AllowFieldsWithSameOriginalName { get; init; } = true;
 
         public bool Parallelize { get; init; } // = false;
 
-        private static IReadOnlyCollection<T> AddToCollection<T>(IReadOnlyCollection<T> orig, T value) {
+        private static IReadOnlyCollection<T> AddToCollection<T>(IReadOnlyCollection<T> orig, T value)
+        {
             var arr = new T[orig.Count + 1];
             var i = 0;
-            if (orig.GetType() == typeof(T[])) {
-                Array.Copy((T[]) orig, arr, orig.Count);
-            } else {
-                foreach (var e in orig) {
+            if (orig.GetType() == typeof(T[]))
+            {
+                Array.Copy((T[])orig, arr, orig.Count);
+            }
+            else
+            {
+                foreach (var e in orig)
+                {
                     arr[i++] = e;
                 }
             }
@@ -43,13 +50,18 @@ namespace MonoMod.Packer {
             return arr;
         }
 
-        private static IReadOnlyCollection<T> AddToCollection<T>(IReadOnlyCollection<T> orig, T[] values) {
+        private static IReadOnlyCollection<T> AddToCollection<T>(IReadOnlyCollection<T> orig, T[] values)
+        {
             var arr = new T[orig.Count + values.Length];
             var i = 0;
-            if (orig.GetType() == typeof(T[])) {
-                Array.Copy((T[]) orig, arr, orig.Count);
-            } else {
-                foreach (var e in orig) {
+            if (orig.GetType() == typeof(T[]))
+            {
+                Array.Copy((T[])orig, arr, orig.Count);
+            }
+            else
+            {
+                foreach (var e in orig)
+                {
                     arr[i++] = e;
                 }
             }

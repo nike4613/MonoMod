@@ -1,7 +1,7 @@
 ﻿using GenTestMatrix;
 using GenTestMatrix.Models;
 
-if (args is not [{ } githubOutputFile, ..var matrixOutNames] || matrixOutNames.Length < 1)
+if (args is not [{ } githubOutputFile, .. var matrixOutNames] || matrixOutNames.Length < 1)
 {
     await StdErr.WriteLineAsync("Takes 2+ arguments: GITHUB_OUTPUT, matrix output names");
     return 1;

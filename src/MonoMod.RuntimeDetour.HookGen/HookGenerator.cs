@@ -549,11 +549,11 @@ namespace MonoMod.RuntimeDetour.HookGen
             var type = typeRef?.SafeResolve();
             goto Try;
 
-            Retry:
+        Retry:
             typeRef = type.BaseType;
             type = typeRef?.SafeResolve();
 
-            Try:
+        Try:
             if (type == null) // Unresolvable - probably private anyway.
                 return OutputModule.TypeSystem.Object;
 

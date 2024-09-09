@@ -1,17 +1,22 @@
 ﻿using AsmResolver.DotNet;
 
-namespace MonoMod.Packer.Utilities {
-    internal abstract class ComparableSignature {
+namespace MonoMod.Packer.Utilities
+{
+    internal abstract class ComparableSignature
+    {
 
         private readonly TypeEntityMap Map;
 
-        protected ComparableSignature(TypeEntityMap map) {
+        protected ComparableSignature(TypeEntityMap map)
+        {
             Map = map;
         }
 
-        public static object? CreateComparableInstance(TypeEntityMap map, IMemberDescriptor descriptor) {
+        public static object? CreateComparableInstance(TypeEntityMap map, IMemberDescriptor descriptor)
+        {
             // an IMemberDescriptor can be several things:
-            switch (descriptor) {
+            switch (descriptor)
+            {
                 case TypeDefinition typeDef:
                     // a type definition
                     // we always want to get whatever entity is correct from the map
@@ -27,7 +32,7 @@ namespace MonoMod.Packer.Utilities {
                     // always forward to map
                     return map.TryLookupMethod(methodDef)?.GetUnified();
 
-                    // TODO: try to resolve references to non-generics into types to be unified?
+                // TODO: try to resolve references to non-generics into types to be unified?
 
                 default:
                     // TODO: is this correct?

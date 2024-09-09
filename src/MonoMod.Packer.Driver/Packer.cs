@@ -13,8 +13,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace MonoMod.Packer.Driver {
-    internal static class Packer {
+namespace MonoMod.Packer.Driver
+{
+    internal static class Packer
+    {
 
         public static readonly Option<string> OptOutput = new(new[] { "--output", "-o" },
             description: "The location to write the packed assembly.")
@@ -73,7 +75,8 @@ namespace MonoMod.Packer.Driver {
             Arity = ArgumentArity.OneOrMore,
         };
 
-        public static void AddOptionsAndArguments(Command cmd) {
+        public static void AddOptionsAndArguments(Command cmd)
+        {
             cmd.Add(OptOutput);
             cmd.Add(OptDefaultCorlib);
             cmd.Add(OptCustomCorlib);
@@ -90,16 +93,20 @@ namespace MonoMod.Packer.Driver {
             cmd.Add(ArgOtherAssemblies);
         }
 
-        public static void Execute(InvocationContext context) {
+        public static void Execute(InvocationContext context)
+        {
             var binder = context.BindingContext;
             var parseResult = binder.ParseResult;
 
             var packOpts = PackOptions.Default;
 
             var corlibKind = parseResult.GetValueForOption(OptDefaultCorlib);
-            if (corlibKind is not DefaultCorlibKind.Default || parseResult.HasOption(OptCustomCorlib)) {
-                if (corlibKind is DefaultCorlibKind.Default) {
-                    if (parseResult.HasOption(OptDefaultCorlib)) {
+            if (corlibKind is not DefaultCorlibKind.Default || parseResult.HasOption(OptCustomCorlib))
+            {
+                if (corlibKind is DefaultCorlibKind.Default)
+                {
+                    if (parseResult.HasOption(OptDefaultCorlib))
+                    {
                         context.Console.Error.WriteLine("--default-corlib must be Custom or not specified with --custom-corlib");
                     }
                     corlibKind = DefaultCorlibKind.Custom;
@@ -107,7 +114,8 @@ namespace MonoMod.Packer.Driver {
                 packOpts = packOpts with { DefaultCorLib = GetCorlib(corlibKind, parseResult, context.Console) };
             }
 
-            packOpts = packOpts with {
+            packOpts = packOpts with
+            {
                 Internalize = parseResult.GetValueForOption(OptInternalize),
                 EnsurePublicApi = parseResult.GetValueForOption(OptEnsurePublicApi),
                 TypeMergeMode = parseResult.GetValueForOption(OptTypeMergeMode),
@@ -117,7 +125,8 @@ namespace MonoMod.Packer.Driver {
                 Parallelize = parseResult.GetValueForOption(OptParallelize)
             };
 
-            if (parseResult.GetValueForOption(OptExplicitInternalize) is { } strings) {
+            if (parseResult.GetValueForOption(OptExplicitInternalize) is { } strings)
+            {
                 packOpts = packOpts.AddExplicitInternalize(strings.Select(ParseAssemblyNameOrPath).ToArray());
             }
 
@@ -128,7 +137,8 @@ namespace MonoMod.Packer.Driver {
             Helpers.Assert(output is not null);
 
             RuntimeConfiguration? runtimeConfig = null;
-            if (runtimeConfigFile is not null) {
+            if (runtimeConfigFile is not null)
+            {
                 runtimeConfig = RuntimeConfiguration.FromFile(runtimeConfigFile.FullName);
             }
 
@@ -143,11 +153,14 @@ namespace MonoMod.Packer.Driver {
             finalAssembly.Write(output);
         }
 
-        private static AssemblyDescriptor GetCorlib(DefaultCorlibKind kind, ParseResult parseResult, IConsole console) {
-            switch (kind) {
+        private static AssemblyDescriptor GetCorlib(DefaultCorlibKind kind, ParseResult parseResult, IConsole console)
+        {
+            switch (kind)
+            {
                 case DefaultCorlibKind.Custom:
                     var nameOrPath = parseResult.GetValueForOption(OptCustomCorlib);
-                    if (nameOrPath is null) {
+                    if (nameOrPath is null)
+                    {
                         console.Error.WriteLine("If the default corlib kind is Custom, --custom-corlib must be specified");
                         Environment.Exit(1);
                     }
@@ -194,45 +207,56 @@ namespace MonoMod.Packer.Driver {
             }
         }
 
-        private static AssemblyDescriptor ParseAssemblyNameOrPath(string nameOrPath) {
-            try {
+        private static AssemblyDescriptor ParseAssemblyNameOrPath(string nameOrPath)
+        {
+            try
+            {
                 // this ctor throws if its not valid; if it is valid, we'll use it
                 var asmName = new AssemblyName(nameOrPath);
 
                 var hasPublicKey = false;
                 byte[]? keyOrToken = null;
-                if (asmName.GetPublicKey() is { } pubKey) {
+                if (asmName.GetPublicKey() is { } pubKey)
+                {
                     hasPublicKey = true;
                     keyOrToken = pubKey;
-                } else if (asmName.GetPublicKeyToken() is { } token) {
+                }
+                else if (asmName.GetPublicKeyToken() is { } token)
+                {
                     hasPublicKey = false;
                     keyOrToken = token;
                 }
 
                 return new AssemblyReference(asmName.Name, asmName.Version ?? new(), hasPublicKey, keyOrToken);
-            } catch (FileLoadException) {
+            }
+            catch (FileLoadException)
+            {
                 // the path isn't a valid AssemblyName, treat it as a path instead
             }
 
             return AssemblyDefinition.FromFile(nameOrPath);
         }
 
-        private static IReadOnlyList<AssemblyDefinition> GlobAndLoadAssemblies(IEnumerable<string> args) {
+        private static IReadOnlyList<AssemblyDefinition> GlobAndLoadAssemblies(IEnumerable<string> args)
+        {
             var matcher = new Matcher(PlatformDetection.OS.Is(OSKind.Windows) ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
             var targetDir = new DirectoryInfoWrapper(new DirectoryInfo("."));
 
-            foreach (var arg in args) {
+            foreach (var arg in args)
+            {
                 matcher.AddInclude(arg);
             }
 
             var result = matcher.Execute(targetDir);
 
-            if (!result.HasMatches) {
+            if (!result.HasMatches)
+            {
                 throw new FileNotFoundException("globs didn't match any files");
             }
 
             var defs = new List<AssemblyDefinition>();
-            foreach (var file in result.Files) {
+            foreach (var file in result.Files)
+            {
                 defs.Add(AssemblyDefinition.FromFile(file.Path));
             }
 

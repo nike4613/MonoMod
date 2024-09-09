@@ -52,7 +52,7 @@ namespace System
                 i += 1;
             }
 
-            Equal:
+        Equal:
             return lengthDelta;
         }
 
@@ -91,13 +91,13 @@ namespace System
                     pCh += 1;
                 }
                 return -1;
-                Found3:
+            Found3:
                 pCh++;
-                Found2:
+            Found2:
                 pCh++;
-                Found1:
+            Found1:
                 pCh++;
-                Found:
+            Found:
                 return (int)(pCh - pChars);
             }
         }
@@ -134,13 +134,13 @@ namespace System
                         goto Found;
                 }
                 return -1;
-                Found:
+            Found:
                 return (int)(pCh - pEndCh);
-                Found1:
+            Found1:
                 return (int)(pCh - pEndCh) + 1;
-                Found2:
+            Found2:
                 return (int)(pCh - pEndCh) + 2;
-                Found3:
+            Found3:
                 return (int)(pCh - pEndCh) + 3;
             }
         }

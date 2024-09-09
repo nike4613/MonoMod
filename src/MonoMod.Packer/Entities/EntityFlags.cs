@@ -2,9 +2,11 @@
 
 #pragma warning disable CA1069 // Enums values should not be duplicated
 
-namespace MonoMod.Packer.Entities {
+namespace MonoMod.Packer.Entities
+{
     [Flags]
-    internal enum EntityFlags {
+    internal enum EntityFlags
+    {
         None = 0,
 
         // Types

@@ -126,7 +126,7 @@ namespace System
                         goto Next;
                 }
                 break;
-                Next:
+            Next:
                 ;
             }
             return span.Slice(start);
@@ -155,7 +155,7 @@ namespace System
                         goto Next;
                 }
                 break;
-                Next:
+            Next:
                 ;
             }
             return span.Slice(0, end + 1);

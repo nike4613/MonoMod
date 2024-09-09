@@ -336,7 +336,7 @@ namespace MonoMod.Cil
                 Goto(moveType == MoveType.After ? i + predicates.Length - 1 : i, moveType, true);
                 return true;
 
-                Next:
+            Next:
                 continue;
             }
             return false;
@@ -377,7 +377,7 @@ namespace MonoMod.Cil
                 Goto(moveType == MoveType.After ? i + predicates.Length - 1 : i, moveType, true);
                 return true;
 
-                Next:
+            Next:
                 continue;
             }
             return false;

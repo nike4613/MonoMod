@@ -279,7 +279,7 @@ namespace MonoMod.Core.Platforms.Systems
                             ptr = high;
                             break;
                         }
-                        FailHigh:
+                    FailHigh:
                         if (low >= lowPageBound)
                         {
                             for (nint i = 0; i < numPages; i++)
@@ -294,7 +294,7 @@ namespace MonoMod.Core.Platforms.Systems
                             ptr = low;
                             break;
                         }
-                        FailLow:
+                    FailLow:
                         { }
                     }
                 }

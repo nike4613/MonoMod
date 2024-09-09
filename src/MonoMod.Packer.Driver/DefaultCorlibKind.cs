@@ -1,5 +1,7 @@
-﻿namespace MonoMod.Packer.Driver {
-    internal enum DefaultCorlibKind {
+﻿namespace MonoMod.Packer.Driver
+{
+    internal enum DefaultCorlibKind
+    {
         Default = 0,
         Custom,
 

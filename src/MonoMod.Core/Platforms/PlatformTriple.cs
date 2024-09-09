@@ -503,7 +503,7 @@ namespace MonoMod.Core.Platforms
 
             nint prevEntry = -1;
 
-            ReloadFuncPtr:
+        ReloadFuncPtr:
             var entry = (nint)Runtime.GetMethodEntryPoint(method);
             MMDbgLog.Trace($"Starting entry point = 0x{entry:x16}");
             do

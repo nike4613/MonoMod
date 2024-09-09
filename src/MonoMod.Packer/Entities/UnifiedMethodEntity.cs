@@ -6,15 +6,18 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MonoMod.Packer.Entities {
+namespace MonoMod.Packer.Entities
+{
     [DebuggerDisplay($"{{{nameof(DebuggerDisplay)}(),nq}}")]
-    internal sealed class UnifiedMethodEntity : MethodEntityBase {
+    internal sealed class UnifiedMethodEntity : MethodEntityBase
+    {
         private string DebuggerDisplay() => $"Unified {Name}:{FullSig}";
 
         public readonly string? FullSig;
         private readonly IReadOnlyList<MethodEntity> methods;
 
-        public UnifiedMethodEntity(TypeEntityMap map, IReadOnlyList<MethodEntity> methods) : base(map) {
+        public UnifiedMethodEntity(TypeEntityMap map, IReadOnlyList<MethodEntity> methods) : base(map)
+        {
             Helpers.DAssert(methods.Count > 0);
             FullSig = methods[0].Definition.Signature?.ToString();
 #if DEBUG
@@ -30,19 +33,24 @@ namespace MonoMod.Packer.Entities {
         public override Utf8String? Name => methods[0].Name;
 
         public new ImmutableArray<UnifiedTypeEntity> TypesInSignature => base.TypesInSignature.CastArray<UnifiedTypeEntity>();
-        protected override ImmutableArray<TypeEntityBase> MakeTypesInSignatureCore() {
+        protected override ImmutableArray<TypeEntityBase> MakeTypesInSignatureCore()
+        {
             var set = new HashSet<UnifiedTypeEntity>();
-            foreach (var method in methods) {
-                foreach (var type in method.TypesInSignature) {
+            foreach (var method in methods)
+            {
+                foreach (var type in method.TypesInSignature)
+                {
                     _ = set.Add(type.UnifiedType);
                 }
             }
             return set.ToImmutableArray().CastArray<TypeEntityBase>();
         }
 
-        protected override ImmutableArray<ModuleDefinition> MakeContributingModules() {
+        protected override ImmutableArray<ModuleDefinition> MakeContributingModules()
+        {
             var builder = ImmutableArray.CreateBuilder<ModuleDefinition>();
-            foreach (var method in methods) {
+            foreach (var method in methods)
+            {
                 builder.AddRange(method.ContributingModules);
             }
             return builder.ToImmutable();

@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Text;
 
-namespace MonoMod.Packer {
+namespace MonoMod.Packer
+{
     [DebuggerDisplay($"{{{nameof(DebuggerDisplay)}(),nq}}")]
-    internal readonly record struct ThreeState {
+    internal readonly record struct ThreeState
+    {
         private readonly string DebuggerDisplay() => ToString();
 
         private readonly int value;
@@ -18,8 +20,10 @@ namespace MonoMod.Packer {
         public static readonly ThreeState No = new(VNo);
         public static readonly ThreeState Maybe = new(VMaybe);
 
-        private readonly bool PrintMembers(StringBuilder stringBuilder) {
-            _ = stringBuilder.Append(value switch {
+        private readonly bool PrintMembers(StringBuilder stringBuilder)
+        {
+            _ = stringBuilder.Append(value switch
+            {
                 VYes => "Yes",
                 VNo => "No",
                 VMaybe => "Maybe",
@@ -38,7 +42,8 @@ namespace MonoMod.Packer {
         public bool MaybeNo => this == No || this == Maybe;
 
         public static ThreeState operator &(ThreeState l, ThreeState r)
-            => (l.value, r.value) switch {
+            => (l.value, r.value) switch
+            {
                 (VYes, VYes) => Yes, // Yes && Yes == Yes
                 (VNo, _) or (_, VNo) => No, // X && No == No && X == No
                 (VMaybe, _) or (_, VMaybe) => Maybe, // Maybe && Yes == Yes && Maybe == Maybe (No is covered above)
@@ -46,14 +51,16 @@ namespace MonoMod.Packer {
             };
 
         public static ThreeState operator |(ThreeState l, ThreeState r)
-            => (l.value, r.value) switch {
+            => (l.value, r.value) switch
+            {
                 (VYes, _) or (_, VYes) => Yes, // Yes || X == X || Yes == Yes
                 (VMaybe, _) or (_, VMaybe) => Maybe, // Maybe || X == X || Maybe == Maybe
                 _ => No, //only remaining case is No || No
             };
 
         public static ThreeState operator !(ThreeState v)
-            => v.value switch {
+            => v.value switch
+            {
                 VYes => No,
                 VNo => Yes,
                 _ => Maybe,

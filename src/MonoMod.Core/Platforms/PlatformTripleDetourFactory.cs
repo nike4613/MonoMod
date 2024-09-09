@@ -328,7 +328,7 @@ namespace MonoMod.Core.Platforms
             private static readonly ConcurrentDictionary<MethodBase, RelatedDetourBag> relatedDetours = new();
             private static void AddRelatedDetour(MethodBase m, ManagedDetourBox cmh)
             {
-                Retry:
+            Retry:
                 var related = relatedDetours.GetOrAdd(m, static m => new(m));
                 lock (related)
                 {

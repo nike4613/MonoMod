@@ -337,10 +337,10 @@ namespace MonoMod.Utils
                 i += 1;
             }
 
-            Equal:
+        Equal:
             return true;
 
-            NotEqual: // Workaround for https://github.com/dotnet/coreclr/issues/13549
+        NotEqual: // Workaround for https://github.com/dotnet/coreclr/issues/13549
             return false;
         }
     }

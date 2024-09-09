@@ -292,7 +292,7 @@ namespace System.Buffers
                 return SliceImpl(begin, end);
             }
 
-            FoundInFirstSegment:
+        FoundInFirstSegment:
             // startIndex + start <= int.MaxValue
             Debug.Assert(start <= int.MaxValue - startIndex);
             return SliceImpl(new SequencePosition(startObject, (int)startIndex + (int)start), end);
@@ -368,7 +368,7 @@ namespace System.Buffers
                 return SliceImpl(start, end);
             }
 
-            FoundInFirstSegment:
+        FoundInFirstSegment:
             // sliceStartIndex + length <= int.MaxValue
             Debug.Assert(length <= int.MaxValue - sliceStartIndex);
             return SliceImpl(start, new SequencePosition(sliceStartObject, (int)sliceStartIndex + (int)length));

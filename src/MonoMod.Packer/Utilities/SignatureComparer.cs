@@ -13,9 +13,11 @@ using AsmResolver.PE.DotNet.Metadata.Tables;
 #pragma warning disable CA1065 // Do not raise exceptions in unexpected locations
 // This is a slightly modified version of ASmResolver's SignatureComparer which needs .Resolve()
 
-namespace MonoMod.Packer.Utilities {
+namespace MonoMod.Packer.Utilities
+{
     public partial class SignatureComparer :
-        IEqualityComparer<byte[]> {
+        IEqualityComparer<byte[]>
+    {
         private const int ElementTypeOffset = 8;
         private const SignatureComparisonFlags DefaultFlags = SignatureComparisonFlags.VersionAgnostic;
 
@@ -32,7 +34,8 @@ namespace MonoMod.Packer.Utilities {
         /// <summary>
         /// The default <see cref="SignatureComparer"/> constructor.
         /// </summary>
-        public SignatureComparer() {
+        public SignatureComparer()
+        {
             Flags = DefaultFlags;
         }
 
@@ -41,7 +44,8 @@ namespace MonoMod.Packer.Utilities {
         /// used in comparisons.
         /// </summary>
         /// <param name="flags">The <see cref="Flags"/> used in comparisons.</param>
-        public SignatureComparer(SignatureComparisonFlags flags) {
+        public SignatureComparer(SignatureComparisonFlags flags)
+        {
             Flags = flags;
         }
 
@@ -68,15 +72,18 @@ namespace MonoMod.Packer.Utilities {
         IEqualityComparer<SentinelTypeSignature>,
         IEqualityComparer<FunctionPointerTypeSignature>,
         IEqualityComparer<IList<TypeSignature>>,
-        IEqualityComparer<IEnumerable<TypeSignature>> {
+        IEqualityComparer<IEnumerable<TypeSignature>>
+    {
         /// <inheritdoc />
-        public bool Equals(TypeSignature? x, TypeSignature? y) {
+        public bool Equals(TypeSignature? x, TypeSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
                 return false;
 
-            switch (x.ElementType) {
+            switch (x.ElementType)
+            {
                 case ElementType.ValueType:
                 case ElementType.Class:
                     return Equals(x as TypeDefOrRefSignature, y as TypeDefOrRefSignature);
@@ -113,44 +120,47 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(TypeSignature obj) {
-            switch (obj.ElementType) {
+        public int GetHashCode(TypeSignature obj)
+        {
+            switch (obj.ElementType)
+            {
                 case ElementType.ValueType:
                 case ElementType.Class:
-                    return GetHashCode((TypeDefOrRefSignature) obj);
+                    return GetHashCode((TypeDefOrRefSignature)obj);
                 case ElementType.CModReqD:
                 case ElementType.CModOpt:
-                    return GetHashCode((CustomModifierTypeSignature) obj);
+                    return GetHashCode((CustomModifierTypeSignature)obj);
                 case ElementType.GenericInst:
-                    return GetHashCode((GenericInstanceTypeSignature) obj);
+                    return GetHashCode((GenericInstanceTypeSignature)obj);
                 case ElementType.Var:
                 case ElementType.MVar:
-                    return GetHashCode((GenericParameterSignature) obj);
+                    return GetHashCode((GenericParameterSignature)obj);
                 case ElementType.Ptr:
-                    return GetHashCode((PointerTypeSignature) obj);
+                    return GetHashCode((PointerTypeSignature)obj);
                 case ElementType.ByRef:
-                    return GetHashCode((ByReferenceTypeSignature) obj);
+                    return GetHashCode((ByReferenceTypeSignature)obj);
                 case ElementType.Array:
-                    return GetHashCode((ArrayTypeSignature) obj);
+                    return GetHashCode((ArrayTypeSignature)obj);
                 case ElementType.SzArray:
-                    return GetHashCode((SzArrayTypeSignature) obj);
+                    return GetHashCode((SzArrayTypeSignature)obj);
                 case ElementType.Sentinel:
-                    return GetHashCode((SentinelTypeSignature) obj);
+                    return GetHashCode((SentinelTypeSignature)obj);
                 case ElementType.Pinned:
-                    return GetHashCode((PinnedTypeSignature) obj);
+                    return GetHashCode((PinnedTypeSignature)obj);
                 case ElementType.Boxed:
-                    return GetHashCode((BoxedTypeSignature) obj);
+                    return GetHashCode((BoxedTypeSignature)obj);
                 case ElementType.FnPtr:
                 case ElementType.Internal:
                 case ElementType.Modifier:
                     throw new NotSupportedException();
                 default:
-                    return GetHashCode((CorLibTypeSignature) obj);
+                    return GetHashCode((CorLibTypeSignature)obj);
             }
         }
 
         /// <inheritdoc />
-        public bool Equals(CorLibTypeSignature? x, CorLibTypeSignature? y) {
+        public bool Equals(CorLibTypeSignature? x, CorLibTypeSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -160,10 +170,11 @@ namespace MonoMod.Packer.Utilities {
 
         /// <inheritdoc />
         public int GetHashCode(CorLibTypeSignature obj) =>
-            (int) obj.ElementType << ElementTypeOffset;
+            (int)obj.ElementType << ElementTypeOffset;
 
         /// <inheritdoc />
-        public bool Equals(SentinelTypeSignature? x, SentinelTypeSignature? y) {
+        public bool Equals(SentinelTypeSignature? x, SentinelTypeSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -173,7 +184,7 @@ namespace MonoMod.Packer.Utilities {
 
         /// <inheritdoc />
         public int GetHashCode(SentinelTypeSignature obj) =>
-            (int) obj.ElementType << ElementTypeOffset;
+            (int)obj.ElementType << ElementTypeOffset;
 
         /// <inheritdoc />
         public bool Equals(ByReferenceTypeSignature? x, ByReferenceTypeSignature? y) =>
@@ -216,7 +227,8 @@ namespace MonoMod.Packer.Utilities {
             GetHashCode(obj as TypeSpecificationSignature);
 
         /// <inheritdoc />
-        public bool Equals(TypeDefOrRefSignature? x, TypeDefOrRefSignature? y) {
+        public bool Equals(TypeDefOrRefSignature? x, TypeDefOrRefSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -228,7 +240,8 @@ namespace MonoMod.Packer.Utilities {
         public int GetHashCode(TypeDefOrRefSignature obj) => SimpleTypeHashCode(obj);
 
         /// <inheritdoc />
-        public bool Equals(CustomModifierTypeSignature? x, CustomModifierTypeSignature? y) {
+        public bool Equals(CustomModifierTypeSignature? x, CustomModifierTypeSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -240,9 +253,11 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(CustomModifierTypeSignature obj) {
-            unchecked {
-                var hashCode = (int) obj.ElementType << ElementTypeOffset;
+        public int GetHashCode(CustomModifierTypeSignature obj)
+        {
+            unchecked
+            {
+                var hashCode = (int)obj.ElementType << ElementTypeOffset;
                 hashCode = (hashCode * 397) ^ obj.ModifierType.GetHashCode();
                 hashCode = (hashCode * 397) ^ obj.BaseType.GetHashCode();
                 return hashCode;
@@ -250,7 +265,8 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public bool Equals(GenericInstanceTypeSignature? x, GenericInstanceTypeSignature? y) {
+        public bool Equals(GenericInstanceTypeSignature? x, GenericInstanceTypeSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -262,9 +278,11 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(GenericInstanceTypeSignature obj) {
-            unchecked {
-                var hashCode = (int) obj.ElementType << ElementTypeOffset;
+        public int GetHashCode(GenericInstanceTypeSignature obj)
+        {
+            unchecked
+            {
+                var hashCode = (int)obj.ElementType << ElementTypeOffset;
                 hashCode = (hashCode * 397) ^ obj.GenericType.GetHashCode();
                 hashCode = (hashCode * 397) ^ GetHashCode(obj.TypeArguments);
                 return hashCode;
@@ -272,7 +290,8 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public bool Equals(GenericParameterSignature? x, GenericParameterSignature? y) {
+        public bool Equals(GenericParameterSignature? x, GenericParameterSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -284,9 +303,10 @@ namespace MonoMod.Packer.Utilities {
 
         /// <inheritdoc />
         public int GetHashCode(GenericParameterSignature obj) =>
-            (int) obj.ElementType << ElementTypeOffset | obj.Index;
+            (int)obj.ElementType << ElementTypeOffset | obj.Index;
 
-        private bool Equals(TypeSpecificationSignature? x, TypeSpecificationSignature? y) {
+        private bool Equals(TypeSpecificationSignature? x, TypeSpecificationSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null || x.ElementType != y.ElementType)
@@ -296,20 +316,24 @@ namespace MonoMod.Packer.Utilities {
 
         private int GetHashCode(TypeSpecificationSignature obj) => SimpleTypeSpecHashCode(obj);
 
-        private int SimpleTypeSpecHashCode(TypeSpecificationSignature obj) {
-            return (int) obj.ElementType << ElementTypeOffset ^ GetHashCode(obj.BaseType);
+        private int SimpleTypeSpecHashCode(TypeSpecificationSignature obj)
+        {
+            return (int)obj.ElementType << ElementTypeOffset ^ GetHashCode(obj.BaseType);
         }
 
         /// <inheritdoc />
-        public bool Equals(ArrayTypeSignature? x, ArrayTypeSignature? y) {
+        public bool Equals(ArrayTypeSignature? x, ArrayTypeSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null || x.Dimensions.Count != y.Dimensions.Count)
                 return false;
 
-            for (var i = 0; i < x.Dimensions.Count; i++) {
+            for (var i = 0; i < x.Dimensions.Count; i++)
+            {
                 if (x.Dimensions[i].Size != y.Dimensions[i].Size
-                    || x.Dimensions[i].LowerBound != y.Dimensions[i].LowerBound) {
+                    || x.Dimensions[i].LowerBound != y.Dimensions[i].LowerBound)
+                {
                     return false;
                 }
             }
@@ -318,9 +342,11 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(ArrayTypeSignature obj) {
-            unchecked {
-                var hashCode = (int) obj.ElementType << ElementTypeOffset;
+        public int GetHashCode(ArrayTypeSignature obj)
+        {
+            unchecked
+            {
+                var hashCode = (int)obj.ElementType << ElementTypeOffset;
                 hashCode = (hashCode * 397) ^ GetHashCode(obj.BaseType);
                 for (var i = 0; i < obj.Dimensions.Count; i++)
                     hashCode = (hashCode * 397) ^ obj.Dimensions[i].GetHashCode();
@@ -330,7 +356,8 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public bool Equals(FunctionPointerTypeSignature? x, FunctionPointerTypeSignature? y) {
+        public bool Equals(FunctionPointerTypeSignature? x, FunctionPointerTypeSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -339,18 +366,21 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(FunctionPointerTypeSignature obj) {
+        public int GetHashCode(FunctionPointerTypeSignature obj)
+        {
             return obj.Signature.GetHashCode();
         }
 
         /// <inheritdoc />
-        public bool Equals(IList<TypeSignature>? x, IList<TypeSignature>? y) {
+        public bool Equals(IList<TypeSignature>? x, IList<TypeSignature>? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null || x.Count != y.Count)
                 return false;
 
-            for (var i = 0; i < x.Count; i++) {
+            for (var i = 0; i < x.Count; i++)
+            {
                 if (!Equals(x[i], y[i]))
                     return false;
             }
@@ -359,7 +389,8 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(IList<TypeSignature> obj) {
+        public int GetHashCode(IList<TypeSignature> obj)
+        {
             var checksum = 0;
             for (var i = 0; i < obj.Count; i++)
                 checksum ^= GetHashCode(obj[i]);
@@ -367,7 +398,8 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public bool Equals(IEnumerable<TypeSignature>? x, IEnumerable<TypeSignature>? y) {
+        public bool Equals(IEnumerable<TypeSignature>? x, IEnumerable<TypeSignature>? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -377,7 +409,8 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(IEnumerable<TypeSignature> obj) {
+        public int GetHashCode(IEnumerable<TypeSignature> obj)
+        {
             var checksum = 0;
             foreach (var type in obj)
                 checksum ^= GetHashCode(type);
@@ -391,15 +424,18 @@ namespace MonoMod.Packer.Utilities {
         IEqualityComparer<TypeReference>,
         IEqualityComparer<TypeSpecification>,
         IEqualityComparer<ExportedType>,
-        IEqualityComparer<InvalidTypeDefOrRef> {
+        IEqualityComparer<InvalidTypeDefOrRef>
+    {
         /// <inheritdoc />
-        public bool Equals(ITypeDescriptor? x, ITypeDescriptor? y) {
+        public bool Equals(ITypeDescriptor? x, ITypeDescriptor? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
                 return false;
 
-            return x switch {
+            return x switch
+            {
                 InvalidTypeDefOrRef invalidType => Equals(invalidType, y as InvalidTypeDefOrRef),
                 TypeSpecification specification => Equals(specification, y as TypeSpecification),
                 TypeSignature signature => Equals(signature, y as TypeSignature),
@@ -408,15 +444,18 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(ITypeDescriptor obj) => obj switch {
+        public int GetHashCode(ITypeDescriptor obj) => obj switch
+        {
             InvalidTypeDefOrRef invalidType => GetHashCode(invalidType),
             ITypeDefOrRef typeDefOrRef => GetHashCode(typeDefOrRef),
             TypeSignature signature => GetHashCode(signature),
             _ => SimpleTypeHashCode(obj)
         };
 
-        protected virtual int SimpleTypeHashCode(ITypeDescriptor obj) {
-            unchecked {
+        protected virtual int SimpleTypeHashCode(ITypeDescriptor obj)
+        {
+            unchecked
+            {
                 var hashCode = obj.Name?.GetHashCode() ?? 0;
                 hashCode = (hashCode * 397) ^ (obj.Namespace?.GetHashCode() ?? 0);
                 hashCode = (hashCode * 397) ^ (obj.DeclaringType is null ? 0 : GetHashCode(obj.DeclaringType));
@@ -424,7 +463,8 @@ namespace MonoMod.Packer.Utilities {
             }
         }
 
-        protected virtual bool SimpleTypeEquals(ITypeDescriptor x, ITypeDescriptor y) {
+        protected virtual bool SimpleTypeEquals(ITypeDescriptor x, ITypeDescriptor y)
+        {
             // Check the basic properties first.
             if (!x.IsTypeOf(y.Namespace, y.Name))
                 return false;
@@ -434,7 +474,8 @@ namespace MonoMod.Packer.Utilities {
                 return true;
 
             // It can still be an exported type, we need to resolve the type then and check if the definitions match.
-            if (!Equals(x.Module, y.Module)) {
+            if (!Equals(x.Module, y.Module))
+            {
                 return x.Resolve() is { } definition1
                        && y.Resolve() is { } definition2
                        && Equals(definition1.Module!.Assembly, definition2.Module!.Assembly)
@@ -449,7 +490,7 @@ namespace MonoMod.Packer.Utilities {
 
         /// <inheritdoc />
         public int GetHashCode(ITypeDefOrRef obj) => obj.MetadataToken.Table == TableIndex.TypeSpec
-            ? GetHashCode((TypeSpecification) obj)
+            ? GetHashCode((TypeSpecification)obj)
             : SimpleTypeHashCode(obj);
 
         /// <inheritdoc />
@@ -465,7 +506,8 @@ namespace MonoMod.Packer.Utilities {
         public int GetHashCode(TypeReference obj) => SimpleTypeHashCode(obj);
 
         /// <inheritdoc />
-        public bool Equals(TypeSpecification? x, TypeSpecification? y) {
+        public bool Equals(TypeSpecification? x, TypeSpecification? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -478,20 +520,22 @@ namespace MonoMod.Packer.Utilities {
         public int GetHashCode(TypeSpecification obj) => obj.Signature is not null ? GetHashCode(obj.Signature) : 0;
 
         /// <inheritdoc />
-        public bool Equals(ExportedType? x, ExportedType? y) {
+        public bool Equals(ExportedType? x, ExportedType? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
                 return false;
 
-            return Equals((ITypeDescriptor) x, y);
+            return Equals((ITypeDescriptor)x, y);
         }
 
         /// <inheritdoc />
-        public int GetHashCode(ExportedType obj) => GetHashCode((ITypeDescriptor) obj);
+        public int GetHashCode(ExportedType obj) => GetHashCode((ITypeDescriptor)obj);
 
         /// <inheritdoc />
-        public bool Equals(InvalidTypeDefOrRef? x, InvalidTypeDefOrRef? y) {
+        public bool Equals(InvalidTypeDefOrRef? x, InvalidTypeDefOrRef? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -501,39 +545,43 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(InvalidTypeDefOrRef obj) => (int) obj.Error;
+        public int GetHashCode(InvalidTypeDefOrRef obj) => (int)obj.Error;
     }
 
     public partial class SignatureComparer :
         IEqualityComparer<MemberReference>,
         IEqualityComparer<IMethodDescriptor>,
         IEqualityComparer<IFieldDescriptor>,
-        IEqualityComparer<MethodSpecification> {
+        IEqualityComparer<MethodSpecification>
+    {
         /// <inheritdoc />
-        public bool Equals(MemberReference? x, MemberReference? y) {
+        public bool Equals(MemberReference? x, MemberReference? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
                 return false;
 
             if (x.IsMethod)
-                return Equals((IMethodDescriptor) x, y);
+                return Equals((IMethodDescriptor)x, y);
             if (y.IsField)
-                return Equals((IFieldDescriptor) x, y);
+                return Equals((IFieldDescriptor)x, y);
             return false;
         }
 
         /// <inheritdoc />
-        public int GetHashCode(MemberReference obj) {
+        public int GetHashCode(MemberReference obj)
+        {
             if (obj.IsMethod)
-                return GetHashCode((IMethodDescriptor) obj);
+                return GetHashCode((IMethodDescriptor)obj);
             if (obj.IsField)
-                return GetHashCode((IFieldDescriptor) obj);
+                return GetHashCode((IFieldDescriptor)obj);
             throw new ArgumentOutOfRangeException(nameof(obj));
         }
 
         /// <inheritdoc />
-        public bool Equals(IMethodDescriptor? x, IMethodDescriptor? y) {
+        public bool Equals(IMethodDescriptor? x, IMethodDescriptor? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -548,8 +596,10 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(IMethodDescriptor obj) {
-            unchecked {
+        public int GetHashCode(IMethodDescriptor obj)
+        {
+            unchecked
+            {
                 var hashCode = obj.Name is null ? 0 : obj.Name.GetHashCode();
                 hashCode = (hashCode * 397) ^ (obj.DeclaringType is not null ? GetHashCode(obj.DeclaringType) : 0);
                 hashCode = (hashCode * 397) ^ (obj.Signature is not null ? GetHashCode(obj.Signature) : 0);
@@ -558,7 +608,8 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public bool Equals(IFieldDescriptor? x, IFieldDescriptor? y) {
+        public bool Equals(IFieldDescriptor? x, IFieldDescriptor? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -570,8 +621,10 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(IFieldDescriptor obj) {
-            unchecked {
+        public int GetHashCode(IFieldDescriptor obj)
+        {
+            unchecked
+            {
                 var hashCode = obj.Name is null ? 0 : obj.Name.GetHashCode();
                 hashCode = (hashCode * 397) ^ (obj.DeclaringType is not null ? GetHashCode(obj.DeclaringType) : 0);
                 hashCode = (hashCode * 397) ^ (obj.Signature is not null ? GetHashCode(obj.Signature) : 0);
@@ -580,7 +633,8 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public bool Equals(MethodSpecification? x, MethodSpecification? y) {
+        public bool Equals(MethodSpecification? x, MethodSpecification? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -591,8 +645,10 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(MethodSpecification obj) {
-            unchecked {
+        public int GetHashCode(MethodSpecification obj)
+        {
+            unchecked
+            {
                 var hashCode = obj.Method == null ? 0 : GetHashCode(obj.Method);
                 hashCode = (hashCode * 397) ^ (obj.Signature is not null ? GetHashCode(obj.Signature) : 0);
                 return hashCode;
@@ -606,15 +662,18 @@ namespace MonoMod.Packer.Utilities {
         IEqualityComparer<MethodSignature>,
         IEqualityComparer<PropertySignature>,
         IEqualityComparer<LocalVariablesSignature>,
-        IEqualityComparer<GenericInstanceMethodSignature> {
+        IEqualityComparer<GenericInstanceMethodSignature>
+    {
         /// <inheritdoc />
-        public bool Equals(CallingConventionSignature? x, CallingConventionSignature? y) {
+        public bool Equals(CallingConventionSignature? x, CallingConventionSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
                 return false;
 
-            return x switch {
+            return x switch
+            {
                 LocalVariablesSignature localVarSig => Equals(localVarSig, y as LocalVariablesSignature),
                 FieldSignature fieldSig => Equals(fieldSig, y as FieldSignature),
                 MethodSignature methodSig => Equals(methodSig, y as MethodSignature),
@@ -624,8 +683,10 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(CallingConventionSignature obj) {
-            return obj switch {
+        public int GetHashCode(CallingConventionSignature obj)
+        {
+            return obj switch
+            {
                 LocalVariablesSignature localVarSig => GetHashCode(localVarSig),
                 FieldSignature fieldSig => GetHashCode(fieldSig),
                 MethodSignature methodSig => GetHashCode(methodSig),
@@ -635,7 +696,8 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public bool Equals(FieldSignature? x, FieldSignature? y) {
+        public bool Equals(FieldSignature? x, FieldSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -646,16 +708,19 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(FieldSignature obj) {
-            unchecked {
-                var hashCode = (int) obj.Attributes;
+        public int GetHashCode(FieldSignature obj)
+        {
+            unchecked
+            {
+                var hashCode = (int)obj.Attributes;
                 hashCode = (hashCode * 397) ^ GetHashCode(obj.FieldType);
                 return hashCode;
             }
         }
 
         /// <inheritdoc />
-        public bool Equals(MethodSignature? x, MethodSignature? y) {
+        public bool Equals(MethodSignature? x, MethodSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -669,9 +734,11 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(MethodSignature obj) {
-            unchecked {
-                var hashCode = (int) obj.Attributes;
+        public int GetHashCode(MethodSignature obj)
+        {
+            unchecked
+            {
+                var hashCode = (int)obj.Attributes;
                 hashCode = (hashCode * 397) ^ obj.GenericParameterCount;
                 hashCode = (hashCode * 397) ^ GetHashCode(obj.ReturnType);
                 hashCode = (hashCode * 397) ^ GetHashCode(obj.ParameterTypes);
@@ -681,7 +748,8 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public bool Equals(LocalVariablesSignature? x, LocalVariablesSignature? y) {
+        public bool Equals(LocalVariablesSignature? x, LocalVariablesSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -692,16 +760,19 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(LocalVariablesSignature obj) {
-            unchecked {
-                var hashCode = (int) obj.Attributes;
+        public int GetHashCode(LocalVariablesSignature obj)
+        {
+            unchecked
+            {
+                var hashCode = (int)obj.Attributes;
                 hashCode = (hashCode * 397) ^ GetHashCode(obj.VariableTypes);
                 return hashCode;
             }
         }
 
         /// <inheritdoc />
-        public bool Equals(GenericInstanceMethodSignature? x, GenericInstanceMethodSignature? y) {
+        public bool Equals(GenericInstanceMethodSignature? x, GenericInstanceMethodSignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -712,16 +783,19 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(GenericInstanceMethodSignature obj) {
-            unchecked {
-                var hashCode = (int) obj.Attributes;
+        public int GetHashCode(GenericInstanceMethodSignature obj)
+        {
+            unchecked
+            {
+                var hashCode = (int)obj.Attributes;
                 hashCode = (hashCode * 397) ^ GetHashCode(obj.TypeArguments);
                 return hashCode;
             }
         }
 
         /// <inheritdoc />
-        public bool Equals(PropertySignature? x, PropertySignature? y) {
+        public bool Equals(PropertySignature? x, PropertySignature? y)
+        {
             if (ReferenceEquals(x, y))
                 return true;
             if (x is null || y is null)
@@ -733,9 +807,11 @@ namespace MonoMod.Packer.Utilities {
         }
 
         /// <inheritdoc />
-        public int GetHashCode(PropertySignature obj) {
-            unchecked {
-                var hashCode = (int) obj.Attributes;
+        public int GetHashCode(PropertySignature obj)
+        {
+            unchecked
+            {
+                var hashCode = (int)obj.Attributes;
                 hashCode = (hashCode * 397) ^ GetHashCode(obj.ReturnType);
                 hashCode = (hashCode * 397) ^ GetHashCode(obj.ParameterTypes);
                 return hashCode;
