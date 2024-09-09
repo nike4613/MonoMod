@@ -41,10 +41,7 @@ namespace MonoMod.Packer
             {
                 queue.Enqueue(module);
 
-                if (corlibDescriptor is null)
-                {
-                    corlibDescriptor = module.CorLibTypeFactory.CorLibScope.GetAssembly();
-                }
+                corlibDescriptor ??= module.CorLibTypeFactory.CorLibScope.GetAssembly();
             }
 
             if (corlibDescriptor is null)
@@ -53,8 +50,7 @@ namespace MonoMod.Packer
                 corlibDescriptor = options.DefaultCorLib;
             }
 
-            var realCorlib = corlibDescriptor as AssemblyReference;
-            if (realCorlib is null)
+            if (corlibDescriptor is not AssemblyReference realCorlib)
             {
                 diagnostics.ReportDiagnostic(ErrorCode.ERR_CouldNotResolveCorLib, corlibDescriptor);
                 // we reported an error, try to continue anyway, using some default reference
@@ -95,7 +91,7 @@ namespace MonoMod.Packer
                     if (asm is null)
                     {
                         // not resolved means the assembly isn't in the set to merge
-                        diagnostics.ReportDiagnostic(ErrorCode.DBG_CouldNotResolveAssembly, module, new object?[] { module });
+                        diagnostics.ReportDiagnostic(ErrorCode.DBG_CouldNotResolveAssembly, module, new object?[] { module, asmRef });
                         continue;
                     }
 

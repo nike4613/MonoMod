@@ -1,6 +1,5 @@
 ﻿using AsmResolver.DotNet;
 using AsmResolver.DotNet.Signatures;
-using AsmResolver.DotNet.Signatures.Types;
 using MonoMod.Packer.Entities;
 using System.Collections.Immutable;
 using MethodSignature = AsmResolver.DotNet.Signatures.MethodSignature;
