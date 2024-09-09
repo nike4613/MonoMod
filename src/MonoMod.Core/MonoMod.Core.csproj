@@ -16,6 +16,7 @@
     <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 
     <MMIncludeTFMChecks>true</MMIncludeTFMChecks>
+    <IsTrimmable>false</IsTrimmable>
 
     <NoWarn>$([String]::Copy('$(NoWarn)').Replace(';CS1591', '')</NoWarn>
   </PropertyGroup>
@@ -30,5 +31,83 @@
     <ProjectReference Include="$(MMExternalPath)iced.csproj" PrivateAssets="all" />
     <PackageReference Include="Mono.Cecil" />
   </ItemGroup>
+  
+  <!-- ILLink-->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="8.0.8" />
+  </ItemGroup>
+
+  <Target Name="_SetLinkOutPath">
+    <PropertyGroup>
+      <_LinkOutDir>$(IntermediateOutputPath)link\</_LinkOutDir>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="MMLinkDeps" DependsOnTargets="CoreCompile;_SetLinkOutPath" BeforeTargets="_CopyFilesMarkedCopyLocal">
+    <ItemGroup>
+      <_ILLinkInput Remove="@(_ILLinkInput)" />
+      <_ILLinkInputAll Remove="@(_ILLinkInputAll)" />
+      <_ILLinkRoot Remove="@(_ILLinkRoot)" />
+      <_ILLinkReference Remove="@(_ILLinkReference)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ILLinkRoot Include="@(IntermediateAssembly)" />
+      <_ILLinkRootName Include="$(AssemblyName)" RootMode="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ILLinkInput Include="@(_ILLinkRoot)" TrimMode="copyused" />
+      <_ILLinkInputAll Include="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'MonoMod.Iced'" TrimMode="link" />
+      <_ILLinkInput Include="@(_ILLinkInputAll)" Condition="'%(Extension)' == '.dll'" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ILLinkReference Include="@(ReferencePathWithRefAssemblies)" />
+      <_ILLinkReference Remove="@(_ILLinkInput)" />
+    </ItemGroup>
+    
+    <!-- When running from Desktop MSBuild, DOTNET_HOST_PATH is not set.
+         In this case, explicitly specify the path to the dotnet host. -->
+    <PropertyGroup Condition=" '$(DOTNET_HOST_PATH)' == '' ">
+      <_DotNetHostDirectory>$(NetCoreRoot)</_DotNetHostDirectory>
+      <_DotNetHostFileName>dotnet</_DotNetHostFileName>
+      <_DotNetHostFileName Condition="$([MSBuild]::IsOSPlatform(`Windows`))">dotnet.exe</_DotNetHostFileName>
+    </PropertyGroup>
+
+    <ILLink AssemblyPaths="@(_ILLinkInput)"
+            ReferenceAssemblyPaths="@(_ILLinkReference)"
+            RootAssemblyNames="@(_ILLinkRootName)"
+            OutputDirectory="$(_LinkOutDir)"
+            RootDescriptorFiles="$(MSBuildThisFileDirectory)ILLink.Descriptors.xml"
+            NoWarn="IL2104"
+            SingleWarn="true"
+            Sealer="true"
+            RemoveSymbols="false"
+            TrimMode="skip"
+            DefaultAction="skip"
+            ExtraArgs="--skip-unresolved true"
+            ToolExe="$(_DotNetHostFileName)"
+            ToolPath="$(_DotNetHostDirectory)" />
+
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(_ILLinkInputAll)" />
+      <FileWrites Include="$(_LinkOutDir)*" />
+      <ReferenceCopyLocalPaths Include="$(_LinkOutDir)*" Condition="'%(Filename)' != '$(AssemblyName)'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="MMPackageReplaceLinkedIced" BeforeTargets="GetPackageContents" AfterTargets="_GetReferencedPackageContents" DependsOnTargets="_SetLinkOutPath">
+    <ItemGroup>
+      <PackageFile Remove="%(PackageFile.Identity)" Condition="'%(Filename)%(Extension)' == 'MonoMod.Iced.dll'" />
+      <PackageFile Remove="%(PackageFile.Identity)" Condition="'%(Filename)%(Extension)' == 'MonoMod.Iced.pdb'" />
+      <PackageFile Include="$(_LinkOutDir)MonoMod.Iced.dll" FrameworkSpecific="true" TargetPath="MonoMod.Iced.dll"/>
+      <PackageFile Include="$(_LinkOutDir)MonoMod.Iced.pdb" FrameworkSpecific="true" TargetPath="MonoMod.Iced.pdb"/>
+    </ItemGroup>
+    <ItemGroup>
+      <!--<PackageFile Remove="@(PackageFile)" Condition="'%(Filename)%(Extension)' == 'MonoMod.Iced.xml'"/>-->
+      <PackageFile Update="@(PackageFile)" Condition="'%(Filename)' == 'MonoMod.Iced'" PackageFolder="lib" PackFolder="lib" />
+    </ItemGroup>
+  </Target>
 
 </Project>
