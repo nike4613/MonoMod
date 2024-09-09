@@ -74,11 +74,14 @@ namespace System
 
             // we'll always use a randomized seed
             var rng = RandomNumberGenerator.Create();
-            try {
+            try
+            {
                 byte[] array = new byte[result.Length];
                 rng.GetBytes(array);
                 array.AsSpan().CopyTo(result);
-            } finally {
+            }
+            finally
+            {
 #pragma warning disable CA1508 // Avoid dead conditional code
                 // We do this because in .NET 3.5, RandomNumberGenerator doesn't implement IDisposable.
                 // We check dynamically to take advantage of it, if possible.

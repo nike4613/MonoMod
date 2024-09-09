@@ -7,11 +7,13 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace System {
+namespace System
+{
     /// <summary>
     /// Extension methods for Span{T}, Memory{T}, and friends.
     /// </summary>
-    public static partial class MemoryExtensions {
+    public static partial class MemoryExtensions
+    {
         /// <summary>
         /// Creates a new span over the portion of the target array.
         /// </summary>
@@ -33,10 +35,14 @@ namespace System {
         /// <param name="other">The value to compare with the source span.</param>
         /// <param name="comparisonType">One of the enumeration values that determines how the <paramref name="span"/> and <paramref name="other"/> are compared.</param>
         /// </summary>
-        public static bool Equals(this ReadOnlySpan<char> span, ReadOnlySpan<char> other, StringComparison comparisonType) {
-            if (comparisonType == StringComparison.Ordinal) {
+        public static bool Equals(this ReadOnlySpan<char> span, ReadOnlySpan<char> other, StringComparison comparisonType)
+        {
+            if (comparisonType == StringComparison.Ordinal)
+            {
                 return span.SequenceEqual<char>(other);
-            } else if (comparisonType == StringComparison.OrdinalIgnoreCase) {
+            }
+            else if (comparisonType == StringComparison.OrdinalIgnoreCase)
+            {
                 if (span.Length != other.Length)
                     return false;
                 return EqualsOrdinalIgnoreCase(span, other);
@@ -46,7 +52,8 @@ namespace System {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool EqualsOrdinalIgnoreCase(ReadOnlySpan<char> span, ReadOnlySpan<char> other) {
+        private static bool EqualsOrdinalIgnoreCase(ReadOnlySpan<char> span, ReadOnlySpan<char> other)
+        {
             Debug.Assert(span.Length == other.Length);
             if (other.Length == 0)  // span.Length == other.Length == 0
                 return true;
@@ -60,10 +67,14 @@ namespace System {
         /// <param name="other">The value to compare with the source span.</param>
         /// <param name="comparisonType">One of the enumeration values that determines how the <paramref name="span"/> and <paramref name="other"/> are compared.</param>
         /// </summary>
-        public static int CompareTo(this ReadOnlySpan<char> span, ReadOnlySpan<char> other, StringComparison comparisonType) {
-            if (comparisonType == StringComparison.Ordinal) {
+        public static int CompareTo(this ReadOnlySpan<char> span, ReadOnlySpan<char> other, StringComparison comparisonType)
+        {
+            if (comparisonType == StringComparison.Ordinal)
+            {
                 return span.SequenceCompareTo(other);
-            } else if (comparisonType == StringComparison.OrdinalIgnoreCase) {
+            }
+            else if (comparisonType == StringComparison.OrdinalIgnoreCase)
+            {
                 return CompareToOrdinalIgnoreCase(span, other);
             }
 
@@ -71,20 +82,24 @@ namespace System {
         }
 
         // Borrowed from https://github.com/dotnet/coreclr/blob/master/src/mscorlib/shared/System/Globalization/CompareInfo.cs#L539
-        private static unsafe int CompareToOrdinalIgnoreCase(ReadOnlySpan<char> strA, ReadOnlySpan<char> strB) {
+        private static unsafe int CompareToOrdinalIgnoreCase(ReadOnlySpan<char> strA, ReadOnlySpan<char> strB)
+        {
             int length = Math.Min(strA.Length, strB.Length);
             int range = length;
 
             fixed (char* ap = &MemoryMarshal.GetReference(strA))
-            fixed (char* bp = &MemoryMarshal.GetReference(strB)) {
+            fixed (char* bp = &MemoryMarshal.GetReference(strB))
+            {
                 char* a = ap;
                 char* b = bp;
 
-                while (length != 0 && (*a <= 0x7F) && (*b <= 0x7F)) {
+                while (length != 0 && (*a <= 0x7F) && (*b <= 0x7F))
+                {
                     int charA = *a;
                     int charB = *b;
 
-                    if (charA == charB) {
+                    if (charA == charB)
+                    {
                         a++;
                         b++;
                         length--;
@@ -92,9 +107,9 @@ namespace System {
                     }
 
                     // uppercase both chars - notice that we need just one compare per char
-                    if ((uint) (charA - 'a') <= 'z' - 'a')
+                    if ((uint)(charA - 'a') <= 'z' - 'a')
                         charA -= 0x20;
-                    if ((uint) (charB - 'a') <= 'z' - 'a')
+                    if ((uint)(charB - 'a') <= 'z' - 'a')
                         charB -= 0x20;
 
                     // Return the (case-insensitive) difference between them.
@@ -122,8 +137,10 @@ namespace System {
         /// <param name="value">The value to seek within the source span.</param>
         /// <param name="comparisonType">One of the enumeration values that determines how the <paramref name="span"/> and <paramref name="value"/> are compared.</param>
         /// </summary>
-        public static int IndexOf(this ReadOnlySpan<char> span, ReadOnlySpan<char> value, StringComparison comparisonType) {
-            if (comparisonType == StringComparison.Ordinal) {
+        public static int IndexOf(this ReadOnlySpan<char> span, ReadOnlySpan<char> value, StringComparison comparisonType)
+        {
+            if (comparisonType == StringComparison.Ordinal)
+            {
                 return span.IndexOf<char>(value);
             }
 
@@ -142,7 +159,8 @@ namespace System {
         /// <exception cref="System.ArgumentNullException">
         /// Thrown when <paramref name="culture"/> is null.
         /// </exception>
-        public static int ToLower(this ReadOnlySpan<char> source, Span<char> destination, CultureInfo culture) {
+        public static int ToLower(this ReadOnlySpan<char> source, Span<char> destination, CultureInfo culture)
+        {
             ThrowHelper.ThrowIfArgumentNull(culture, ExceptionArgument.culture);
 
             // Assuming that changing case does not affect length
@@ -179,7 +197,8 @@ namespace System {
         /// <exception cref="System.ArgumentNullException">
         /// Thrown when <paramref name="culture"/> is null.
         /// </exception>
-        public static int ToUpper(this ReadOnlySpan<char> source, Span<char> destination, CultureInfo culture) {
+        public static int ToUpper(this ReadOnlySpan<char> source, Span<char> destination, CultureInfo culture)
+        {
             ThrowHelper.ThrowIfArgumentNull(culture, ExceptionArgument.culture);
 
             // Assuming that changing case does not affect length
@@ -210,10 +229,14 @@ namespace System {
         /// <param name="span">The source span.</param>
         /// <param name="value">The sequence to compare to the end of the source span.</param>
         /// <param name="comparisonType">One of the enumeration values that determines how the <paramref name="span"/> and <paramref name="value"/> are compared.</param>
-        public static bool EndsWith(this ReadOnlySpan<char> span, ReadOnlySpan<char> value, StringComparison comparisonType) {
-            if (comparisonType == StringComparison.Ordinal) {
+        public static bool EndsWith(this ReadOnlySpan<char> span, ReadOnlySpan<char> value, StringComparison comparisonType)
+        {
+            if (comparisonType == StringComparison.Ordinal)
+            {
                 return span.EndsWith<char>(value);
-            } else if (comparisonType == StringComparison.OrdinalIgnoreCase) {
+            }
+            else if (comparisonType == StringComparison.OrdinalIgnoreCase)
+            {
                 return value.Length <= span.Length && EqualsOrdinalIgnoreCase(span.Slice(span.Length - value.Length), value);
             }
 
@@ -228,10 +251,14 @@ namespace System {
         /// <param name="span">The source span.</param>
         /// <param name="value">The sequence to compare to the beginning of the source span.</param>
         /// <param name="comparisonType">One of the enumeration values that determines how the <paramref name="span"/> and <paramref name="value"/> are compared.</param>
-        public static bool StartsWith(this ReadOnlySpan<char> span, ReadOnlySpan<char> value, StringComparison comparisonType) {
-            if (comparisonType == StringComparison.Ordinal) {
+        public static bool StartsWith(this ReadOnlySpan<char> span, ReadOnlySpan<char> value, StringComparison comparisonType)
+        {
+            if (comparisonType == StringComparison.Ordinal)
+            {
                 return span.StartsWith<char>(value);
-            } else if (comparisonType == StringComparison.OrdinalIgnoreCase) {
+            }
+            else if (comparisonType == StringComparison.OrdinalIgnoreCase)
+            {
                 return value.Length <= span.Length && EqualsOrdinalIgnoreCase(span.Slice(0, value.Length), value);
             }
 
@@ -246,11 +273,12 @@ namespace System {
         /// <param name="text">The target string.</param>
         /// <remarks>Returns default when <paramref name="text"/> is null.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlySpan<char> AsSpan(this string? text) {
+        public static ReadOnlySpan<char> AsSpan(this string? text)
+        {
             if (text == null)
                 return default;
 
-            return new ReadOnlySpan<char>(Unsafe.As<Pinnable<char>>(text), StringAdjustment, text.Length);
+            return new ReadOnlySpan<char>(text, (nint)RuntimeHelpers.OffsetToStringData, text.Length);
         }
 
         /// <summary>
@@ -263,16 +291,18 @@ namespace System {
         /// Thrown when the specified <paramref name="start"/> index is not in range (&lt;0 or &gt;text.Length).
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlySpan<char> AsSpan(this string? text, int start) {
-            if (text == null) {
+        public static ReadOnlySpan<char> AsSpan(this string? text, int start)
+        {
+            if (text == null)
+            {
                 if (start != 0)
                     ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.start);
                 return default;
             }
-            if ((uint) start > (uint) text.Length)
+            if ((uint)start > (uint)text.Length)
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.start);
 
-            return new ReadOnlySpan<char>(Unsafe.As<Pinnable<char>>(text), StringAdjustment + start * sizeof(char), text.Length - start);
+            return new ReadOnlySpan<char>(text, (nint)RuntimeHelpers.OffsetToStringData + start * sizeof(char), text.Length - start);
         }
 
         /// <summary>
@@ -286,22 +316,25 @@ namespace System {
         /// Thrown when the specified <paramref name="start"/> index or <paramref name="length"/> is not in range.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlySpan<char> AsSpan(this string? text, int start, int length) {
-            if (text == null) {
+        public static ReadOnlySpan<char> AsSpan(this string? text, int start, int length)
+        {
+            if (text == null)
+            {
                 if (start != 0 || length != 0)
                     ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.start);
                 return default;
             }
-            if ((uint) start > (uint) text.Length || (uint) length > (uint) (text.Length - start))
+            if ((uint)start > (uint)text.Length || (uint)length > (uint)(text.Length - start))
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.start);
 
-            return new ReadOnlySpan<char>(Unsafe.As<Pinnable<char>>(text), StringAdjustment + start * sizeof(char), length);
+            return new ReadOnlySpan<char>(text, (nint)RuntimeHelpers.OffsetToStringData + start * sizeof(char), length);
         }
 
         /// <summary>Creates a new <see cref="ReadOnlyMemory{T}"/> over the portion of the target string.</summary>
         /// <param name="text">The target string.</param>
         /// <remarks>Returns default when <paramref name="text"/> is null.</remarks>
-        public static ReadOnlyMemory<char> AsMemory(this string? text) {
+        public static ReadOnlyMemory<char> AsMemory(this string? text)
+        {
             if (text == null)
                 return default;
 
@@ -315,13 +348,15 @@ namespace System {
         /// <exception cref="System.ArgumentOutOfRangeException">
         /// Thrown when the specified <paramref name="start"/> index is not in range (&lt;0 or &gt;text.Length).
         /// </exception>
-        public static ReadOnlyMemory<char> AsMemory(this string? text, int start) {
-            if (text == null) {
+        public static ReadOnlyMemory<char> AsMemory(this string? text, int start)
+        {
+            if (text == null)
+            {
                 if (start != 0)
                     ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.start);
                 return default;
             }
-            if ((uint) start > (uint) text.Length)
+            if ((uint)start > (uint)text.Length)
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.start);
 
             return new ReadOnlyMemory<char>(text, start, text.Length - start);
@@ -335,27 +370,18 @@ namespace System {
         /// <exception cref="System.ArgumentOutOfRangeException">
         /// Thrown when the specified <paramref name="start"/> index or <paramref name="length"/> is not in range.
         /// </exception>
-        public static ReadOnlyMemory<char> AsMemory(this string? text, int start, int length) {
-            if (text == null) {
+        public static ReadOnlyMemory<char> AsMemory(this string? text, int start, int length)
+        {
+            if (text == null)
+            {
                 if (start != 0 || length != 0)
                     ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.start);
                 return default;
             }
-            if ((uint) start > (uint) text.Length || (uint) length > (uint) (text.Length - start))
+            if ((uint)start > (uint)text.Length || (uint)length > (uint)(text.Length - start))
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.start);
 
             return new ReadOnlyMemory<char>(text, start, length);
-        }
-
-        internal static readonly nint StringAdjustment = MeasureStringAdjustment();
-
-        private static nint MeasureStringAdjustment() {
-            string sampleString = "a";
-            unsafe {
-                fixed (char* pSampleString = sampleString) {
-                    return Unsafe.ByteOffset<char>(ref Unsafe.As<Pinnable<char>>(sampleString).Data, ref Unsafe.AsRef<char>(pSampleString));
-                }
-            }
         }
     }
 }

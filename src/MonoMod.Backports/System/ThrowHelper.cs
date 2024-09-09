@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.CompilerServices;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
-namespace System {
+namespace System
+{
     //
     // This pattern of easily inlinable "void Throw" routines that stack on top of NoInlining factory methods
     // is a compromise between older JITs and newer JITs (RyuJIT in Core CLR 1.1.0+ and desktop CLR in 4.6.3+).
@@ -23,15 +24,18 @@ namespace System {
     //
     [SuppressMessage("Performance", "CA1859:Use concrete types when possible for improved performance",
         Justification = "We don't call any virtual methods on Exception")]
-    internal static partial class ThrowHelper {
+    internal static partial class ThrowHelper
+    {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void ThrowIfArgumentNull([NotNull] object? obj, ExceptionArgument argument) {
+        internal static void ThrowIfArgumentNull([NotNull] object? obj, ExceptionArgument argument)
+        {
             if (obj is null)
                 ThrowArgumentNullException(argument);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void ThrowIfArgumentNull([NotNull] object? obj, string argument, string? message = null) {
+        internal static void ThrowIfArgumentNull([NotNull] object? obj, string argument, string? message = null)
+        {
             if (obj is null)
                 ThrowArgumentNullException(argument, message);
         }
@@ -158,7 +162,8 @@ namespace System {
         //
         // Enable use of ThrowHelper from TryFormat() routines without introducing dozens of non-code-coveraged "bytesWritten = 0; return false" boilerplate.
         //
-        public static bool TryFormatThrowFormatException(out int bytesWritten) {
+        public static bool TryFormatThrowFormatException(out int bytesWritten)
+        {
             bytesWritten = 0;
             ThrowHelper.ThrowFormatException_BadFormatSpecifier();
             return false;
@@ -167,7 +172,8 @@ namespace System {
         //
         // Enable use of ThrowHelper from TryParse() routines without introducing dozens of non-code-coveraged "value= default; bytesConsumed = 0; return false" boilerplate.
         //
-        public static bool TryParseThrowFormatException<T>(out T value, out int bytesConsumed) {
+        public static bool TryParseThrowFormatException<T>(out T value, out int bytesConsumed)
+        {
             value = default!;
             bytesConsumed = 0;
             ThrowHelper.ThrowFormatException_BadFormatSpecifier();
@@ -181,14 +187,15 @@ namespace System {
         public static void ThrowArgumentValidationException<T>(ReadOnlySequenceSegment<T>? startSegment, int startIndex, ReadOnlySequenceSegment<T>? endSegment)
             => throw CreateArgumentValidationException(startSegment, startIndex, endSegment);
 
-        private static Exception CreateArgumentValidationException<T>(ReadOnlySequenceSegment<T>? startSegment, int startIndex, ReadOnlySequenceSegment<T>? endSegment) {
+        private static Exception CreateArgumentValidationException<T>(ReadOnlySequenceSegment<T>? startSegment, int startIndex, ReadOnlySequenceSegment<T>? endSegment)
+        {
             if (startSegment == null)
                 return CreateArgumentNullException(ExceptionArgument.startSegment);
             else if (endSegment == null)
                 return CreateArgumentNullException(ExceptionArgument.endSegment);
             else if (startSegment != endSegment && startSegment.RunningIndex > endSegment.RunningIndex)
                 return CreateArgumentOutOfRangeException(ExceptionArgument.endSegment);
-            else if ((uint) startSegment.Memory.Length < (uint) startIndex)
+            else if ((uint)startSegment.Memory.Length < (uint)startIndex)
                 return CreateArgumentOutOfRangeException(ExceptionArgument.startIndex);
             else
                 return CreateArgumentOutOfRangeException(ExceptionArgument.endIndex);
@@ -198,10 +205,11 @@ namespace System {
         public static void ThrowArgumentValidationException(Array? array, int start)
             => throw CreateArgumentValidationException(array, start);
 
-        private static Exception CreateArgumentValidationException(Array? array, int start) {
+        private static Exception CreateArgumentValidationException(Array? array, int start)
+        {
             if (array == null)
                 return CreateArgumentNullException(ExceptionArgument.array);
-            else if ((uint) start > (uint) array.Length)
+            else if ((uint)start > (uint)array.Length)
                 return CreateArgumentOutOfRangeException(ExceptionArgument.start);
             else
                 return CreateArgumentOutOfRangeException(ExceptionArgument.length);
@@ -217,7 +225,8 @@ namespace System {
         public static void ThrowStartOrEndArgumentValidationException(long start)
             => throw CreateStartOrEndArgumentValidationException(start);
 
-        private static Exception CreateStartOrEndArgumentValidationException(long start) {
+        private static Exception CreateStartOrEndArgumentValidationException(long start)
+        {
             if (start < 0)
                 return CreateArgumentOutOfRangeException(ExceptionArgument.start);
             return CreateArgumentOutOfRangeException(ExceptionArgument.length);
@@ -228,7 +237,8 @@ namespace System {
     //
     // The convention for this enum is using the argument name as the enum name
     //
-    internal enum ExceptionArgument {
+    internal enum ExceptionArgument
+    {
         length,
         start,
         bufferSize,

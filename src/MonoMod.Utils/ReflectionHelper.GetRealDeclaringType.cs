@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Reflection;
 
-namespace MonoMod.Utils {
-    public static partial class ReflectionHelper {
+namespace MonoMod.Utils
+{
+    public static partial class ReflectionHelper
+    {
 
         private static Type? t_RuntimeModule =
             typeof(Module).Assembly
@@ -23,7 +25,8 @@ namespace MonoMod.Utils {
             .GetType("System.Reflection.RuntimeModule")
             ?.GetMethod("GetGlobalType", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 
-        public static Type? GetModuleType(this Module? module) {
+        public static Type? GetModuleType(this Module? module)
+        {
             // Sadly we can't blindly resolve type 0x02000001 as the runtime throws ArgumentException.
 
             if (module == null || t_RuntimeModule == null || !t_RuntimeModule.IsInstanceOfType(module))
@@ -31,12 +34,12 @@ namespace MonoMod.Utils {
 
             // .NET
             if (p_RuntimeModule_RuntimeType != null)
-                return (Type) p_RuntimeModule_RuntimeType.GetValue(module, ArrayEx.Empty<object?>())!;
+                return (Type)p_RuntimeModule_RuntimeType.GetValue(module, ArrayEx.Empty<object?>())!;
 
             // Mono
             if (f_RuntimeModule__impl != null &&
                 m_RuntimeModule_GetGlobalType != null)
-                return (Type) m_RuntimeModule_GetGlobalType.Invoke(null, new object?[] { f_RuntimeModule__impl.GetValue(module) })!;
+                return (Type)m_RuntimeModule_GetGlobalType.Invoke(null, new object?[] { f_RuntimeModule__impl.GetValue(module) })!;
 
             return null;
         }

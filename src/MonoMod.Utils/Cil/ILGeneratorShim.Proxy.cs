@@ -9,15 +9,18 @@ using FieldAttributes = Mono.Cecil.FieldAttributes;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 using TypeAttributes = Mono.Cecil.TypeAttributes;
 
-namespace MonoMod.Utils.Cil {
-    public partial class ILGeneratorShim {
+namespace MonoMod.Utils.Cil
+{
+    public partial class ILGeneratorShim
+    {
 
         /// <summary>
         /// Get a "real" ILGenerator for this ILGeneratorShim.
         /// </summary>
         /// <returns>A "real" ILGenerator.</returns>
-        public System.Reflection.Emit.ILGenerator GetProxy() {
-            return (System.Reflection.Emit.ILGenerator) ILGeneratorBuilder
+        public System.Reflection.Emit.ILGenerator GetProxy()
+        {
+            return (System.Reflection.Emit.ILGenerator)ILGeneratorBuilder
                 .GenerateProxy()
                 .MakeGenericType(GetType())
                 .GetConstructors()[0]
@@ -42,7 +45,8 @@ namespace MonoMod.Utils.Cil {
         /// <returns>The "real" ILGenerator type, non-generic.</returns>
         public static Type GenericProxyType => ILGeneratorBuilder.GenerateProxy();
 
-        internal static class ILGeneratorBuilder {
+        internal static class ILGeneratorBuilder
+        {
 
             // NOTE: If you plan on changing this, keep in mind that any InternalsVisibleToAttributes need to be updated as well!
             public const string Namespace = "MonoMod.Utils.Cil";
@@ -51,16 +55,18 @@ namespace MonoMod.Utils.Cil {
             public const string TargetName = "Target";
             static Type? ProxyType;
 
-            public static Type GenerateProxy() {
+            public static Type GenerateProxy()
+            {
                 if (ProxyType != null)
                     return ProxyType;
                 Assembly asm;
 
-                Type t_ILGenerator = typeof(System.Reflection.Emit.ILGenerator);
-                Type t_ILGeneratorProxyTarget = typeof(ILGeneratorShim);
+                var t_ILGenerator = typeof(System.Reflection.Emit.ILGenerator);
+                var t_ILGeneratorProxyTarget = typeof(ILGeneratorShim);
 
                 using (var module = ModuleDefinition.CreateModule(FullName,
-                        new ModuleParameters() {
+                        new ModuleParameters()
+                        {
                             Kind = ModuleKind.Dll,
                             ReflectionImporterProvider = MMReflectionImporter.Provider
                         }
@@ -74,12 +80,13 @@ namespace MonoMod.Utils.Cil {
                         Namespace,
                         Name,
                         TypeAttributes.Public
-                    ) {
+                    )
+                    {
                         BaseType = module.ImportReference(t_ILGenerator)
                     };
                     module.Types.Add(type);
 
-                    TypeReference tr_ILGeneratorProxyTarget = module.ImportReference(t_ILGeneratorProxyTarget);
+                    var tr_ILGeneratorProxyTarget = module.ImportReference(t_ILGeneratorProxyTarget);
 
                     var g_TTarget = new GenericParameter("TTarget", type);
 #if CECIL0_10
@@ -109,13 +116,14 @@ namespace MonoMod.Utils.Cil {
                     ctor.Parameters.Add(new ParameterDefinition(g_TTarget));
                     type.Methods.Add(ctor);
 
-                    ILProcessor il = ctor.Body.GetILProcessor();
+                    var il = ctor.Body.GetILProcessor();
                     il.Emit(OpCodes.Ldarg_0);
                     il.Emit(OpCodes.Ldarg_1);
                     il.Emit(OpCodes.Stfld, fr_Target);
                     il.Emit(OpCodes.Ret);
 
-                    foreach (MethodInfo orig in t_ILGenerator.GetMethods(BindingFlags.Public | BindingFlags.Instance)) {
+                    foreach (var orig in t_ILGenerator.GetMethods(BindingFlags.Public | BindingFlags.Instance))
+                    {
                         var target = t_ILGeneratorProxyTarget.GetMethod(orig.Name, orig.GetParameters().Select(p => p.ParameterType).ToArray());
                         if (target == null)
                             continue;
@@ -124,17 +132,18 @@ namespace MonoMod.Utils.Cil {
                             orig.Name,
                             MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
                             module.ImportReference(orig.ReturnType)
-                        ) {
+                        )
+                        {
                             HasThis = true
                         };
-                        foreach (ParameterInfo param in orig.GetParameters())
+                        foreach (var param in orig.GetParameters())
                             proxy.Parameters.Add(new ParameterDefinition(module.ImportReference(param.ParameterType)));
                         type.Methods.Add(proxy);
 
                         il = proxy.Body.GetILProcessor();
                         il.Emit(OpCodes.Ldarg_0);
                         il.Emit(OpCodes.Ldfld, fr_Target);
-                        foreach (ParameterDefinition param in proxy.Parameters)
+                        foreach (var param in proxy.Parameters)
                             il.Emit(OpCodes.Ldarg, param);
                         il.Emit(target.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, il.Body.Method.Module.ImportReference(target));
                         il.Emit(OpCodes.Ret);
@@ -147,7 +156,8 @@ namespace MonoMod.Utils.Cil {
                 // .NET hates to acknowledge manually loaded assemblies.
                 // Luckily, ReflectionHelper already does the following for asm.
                 // Sadly, we can't control how MonoMod.Common / MonoMod.Utils / ... gets loaded.
-                ResolveEventHandler mmcResolver = (asmSender, asmArgs) => {
+                ResolveEventHandler mmcResolver = (asmSender, asmArgs) =>
+                {
                     var asmName = new AssemblyName(asmArgs.Name);
                     if (asmName.Name == typeof(ILGeneratorBuilder).Assembly.GetName().Name)
                         return typeof(ILGeneratorBuilder).Assembly;
@@ -155,23 +165,30 @@ namespace MonoMod.Utils.Cil {
                 };
 
                 AppDomain.CurrentDomain.AssemblyResolve += mmcResolver;
-                try {
+                try
+                {
                     ProxyType = asm.GetType(FullName);
-                } finally {
+                }
+                finally
+                {
                     AppDomain.CurrentDomain.AssemblyResolve -= mmcResolver;
                 }
 
-                if (ProxyType == null) {
+                if (ProxyType == null)
+                {
                     var builder = new StringBuilder();
                     builder.Append("Couldn't find ILGeneratorShim proxy \"").Append(FullName).Append("\" in autogenerated \"").Append(asm.FullName).AppendLine("\"");
 
                     Type?[] types;
                     Exception?[]? exceptions;
-                    try {
+                    try
+                    {
                         types = asm.GetTypes();
                         exceptions = null;
 
-                    } catch (ReflectionTypeLoadException e) {
+                    }
+                    catch (ReflectionTypeLoadException e)
+                    {
                         types = e.Types;
                         exceptions = new Exception[e.LoaderExceptions.Length + 1];
                         exceptions[0] = e;
@@ -183,7 +200,8 @@ namespace MonoMod.Utils.Cil {
                     foreach (var type in types)
                         builder.AppendLine(type?.FullName ?? "<NULL>");
 
-                    if (exceptions is not null && exceptions.Length > 0) {
+                    if (exceptions is not null && exceptions.Length > 0)
+                    {
                         builder.AppendLine("Listing all exceptions:");
                         for (var i = 0; i < exceptions.Length; i++)
                             builder.Append('#').Append(i).Append(": ").AppendLine(exceptions[i]?.ToString() ?? "NULL");
@@ -198,17 +216,20 @@ namespace MonoMod.Utils.Cil {
         }
 
     }
-    public static class ILGeneratorShimExt {
+    public static class ILGeneratorShimExt
+    {
 
         private static readonly Dictionary<Type, MethodInfo> _Emitters = new Dictionary<Type, MethodInfo>();
         private static readonly Dictionary<Type, MethodInfo> _EmittersShim = new Dictionary<Type, MethodInfo>();
 
-        static ILGeneratorShimExt() {
-            foreach (MethodInfo method in typeof(System.Reflection.Emit.ILGenerator).GetMethods()) {
+        static ILGeneratorShimExt()
+        {
+            foreach (var method in typeof(System.Reflection.Emit.ILGenerator).GetMethods())
+            {
                 if (method.Name != "Emit")
                     continue;
 
-                ParameterInfo[] args = method.GetParameters();
+                var args = method.GetParameters();
                 if (args.Length != 2)
                     continue;
 
@@ -217,11 +238,12 @@ namespace MonoMod.Utils.Cil {
                 _Emitters[args[1].ParameterType] = method;
             }
 
-            foreach (MethodInfo method in typeof(ILGeneratorShim).GetMethods()) {
+            foreach (var method in typeof(ILGeneratorShim).GetMethods())
+            {
                 if (method.Name != "Emit")
                     continue;
 
-                ParameterInfo[] args = method.GetParameters();
+                var args = method.GetParameters();
                 if (args.Length != 2)
                     continue;
 
@@ -232,7 +254,7 @@ namespace MonoMod.Utils.Cil {
         }
 
         public static ILGeneratorShim GetProxiedShim(this System.Reflection.Emit.ILGenerator il)
-            => (ILGeneratorShim) Helpers.ThrowIfNull(il).GetType().GetField(
+            => (ILGeneratorShim)Helpers.ThrowIfNull(il).GetType().GetField(
                 ILGeneratorShim.ILGeneratorBuilder.TargetName,
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance
             )?.GetValue(il)!;
@@ -243,12 +265,13 @@ namespace MonoMod.Utils.Cil {
         public static object? DynEmit(this System.Reflection.Emit.ILGenerator il, System.Reflection.Emit.OpCode opcode, object operand)
             => il.DynEmit(new object[] { opcode, operand });
 
-        public static object? DynEmit(this System.Reflection.Emit.ILGenerator il, object[] emitArgs) {
+        public static object? DynEmit(this System.Reflection.Emit.ILGenerator il, object[] emitArgs)
+        {
             Helpers.ThrowIfArgumentNull(emitArgs);
-            Type operandType = emitArgs[1].GetType();
+            var operandType = emitArgs[1].GetType();
 
-            var target = il.GetProxiedShim() ?? (object) il;
-            Dictionary<Type, MethodInfo> emitters = target is ILGeneratorShim ? _EmittersShim : _Emitters;
+            var target = il.GetProxiedShim() ?? (object)il;
+            var emitters = target is ILGeneratorShim ? _EmittersShim : _Emitters;
 
             if (!emitters.TryGetValue(operandType, out var emit))
                 emit = emitters.FirstOrDefault(kvp => kvp.Key.IsAssignableFrom(operandType)).Value;

@@ -2,23 +2,26 @@
 #pragma warning disable xUnit1013 // Public method should be marked as test
 
 extern alias New;
-
-using Xunit;
 using New::MonoMod.RuntimeDetour;
 using System;
 using System.Runtime.CompilerServices;
+using Xunit;
 using Xunit.Abstractions;
 
-namespace MonoMod.UnitTest {
+namespace MonoMod.UnitTest
+{
     [Collection("RuntimeDetour")]
-    public class DetourEmptyTest : TestBase {
+    public class DetourEmptyTest : TestBase
+    {
         private bool DidNothing = true;
 
-        public DetourEmptyTest(ITestOutputHelper helper) : base(helper) {
+        public DetourEmptyTest(ITestOutputHelper helper) : base(helper)
+        {
         }
 
         [Fact]
-        public void TestDetoursEmpty() {
+        public void TestDetoursEmpty()
+        {
             // The following use cases are not meant to be usage examples.
             // Please take a look at DetourTest and HookTest instead.
 
@@ -31,10 +34,12 @@ namespace MonoMod.UnitTest {
 
             using (var h = new Hook(
                 typeof(DetourEmptyTest).GetMethod("DoNothing"),
-                new Action<DetourEmptyTest>(self => {
+                new Action<DetourEmptyTest>(self =>
+                {
                     DidNothing = false;
                 })
-            )) {
+            ))
+            {
                 DidNothing = true;
                 DoNothing();
                 Assert.False(DidNothing);
@@ -46,8 +51,9 @@ namespace MonoMod.UnitTest {
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void DoNothing() {
+        public void DoNothing()
+        {
         }
-        
+
     }
 }

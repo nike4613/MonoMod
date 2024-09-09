@@ -1,16 +1,18 @@
 ﻿using Mono.Cecil;
 using MonoMod.Utils;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using static MonoMod.Core.Interop.CoreCLR;
 using System.Runtime.InteropServices;
+using static MonoMod.Core.Interop.CoreCLR;
 using MC = Mono.Cecil;
-using System.Diagnostics.CodeAnalysis;
 
-namespace MonoMod.Core.Platforms.Runtimes {
-    internal class Core21Runtime : CoreBaseRuntime {
+namespace MonoMod.Core.Platforms.Runtimes
+{
+    internal class Core21Runtime : CoreBaseRuntime
+    {
 
         public override RuntimeFeature Features => base.Features | RuntimeFeature.CompileMethodHook;
 
@@ -37,11 +39,12 @@ namespace MonoMod.Core.Platforms.Runtimes {
         }
         */
 
+        private static readonly Func<Core21Runtime, JitHookHelpersHolder> createJitHookHelpersFunc = CreateJitHookHelpers;
         private static JitHookHelpersHolder CreateJitHookHelpers(Core21Runtime self) => new(self);
 
         private readonly object sync = new();
         private JitHookHelpersHolder? lazyJitHookHelpers;
-        protected unsafe JitHookHelpersHolder JitHookHelpers => Helpers.GetOrInitWithLock(ref lazyJitHookHelpers, sync, &CreateJitHookHelpers, this);
+        protected unsafe JitHookHelpersHolder JitHookHelpers => Helpers.GetOrInitWithLock(ref lazyJitHookHelpers, sync, createJitHookHelpersFunc, this);
 
         // src/inc/corinfo.h line 216
         // 0ba106c8-81a0-407f-99a1-928448c1eb62
@@ -63,12 +66,13 @@ namespace MonoMod.Core.Platforms.Runtimes {
             => del.CastDelegate<V21.CompileMethodDelegate>();
 
         protected static unsafe IntPtr* GetVTableEntry(IntPtr @object, int index)
-            => (*(IntPtr**) @object) + index;
+            => (*(IntPtr**)@object) + index;
         protected static unsafe IntPtr ReadObjectVTable(IntPtr @object, int index)
             => *GetVTableEntry(@object, index);
 
-        private unsafe void CheckVersionGuid(IntPtr jit) {
-            var getVersionIdentPtr = (delegate* unmanaged[Thiscall]<IntPtr, Guid*, void>) ReadObjectVTable(jit, VtableIndexICorJitCompilerGetVersionGuid);
+        private unsafe void CheckVersionGuid(IntPtr jit)
+        {
+            var getVersionIdentPtr = (delegate* unmanaged[Thiscall]<IntPtr, Guid*, void>)ReadObjectVTable(jit, VtableIndexICorJitCompilerGetVersionGuid);
             Guid guid;
             getVersionIdentPtr(jit, &guid);
             Helpers.Assert(guid == ExpectedJitVersion,
@@ -80,7 +84,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
         private IDisposable? n2mHookHelper;
         private IDisposable? m2nHookHelper;
 
-        protected unsafe override void InstallJitHook(IntPtr jit) {
+        protected unsafe override void InstallJitHook(IntPtr jit)
+        {
             CheckVersionGuid(jit);
 
             // Get the real compile method vtable slot
@@ -100,10 +105,11 @@ namespace MonoMod.Core.Platforms.Runtimes {
             Span<byte> ptrData = stackalloc byte[sizeof(IntPtr)];
             MemoryMarshal.Write(ptrData, ref ourCompileMethodPtr);
 
-            System.PatchData(PatchTargetKind.ReadOnly, (IntPtr) compileMethodSlot, ptrData, default);
+            System.PatchData(PatchTargetKind.ReadOnly, (IntPtr)compileMethodSlot, ptrData, default);
         }
 
-        protected unsafe virtual void InvokeCompileMethodToPrepare(IntPtr method) {
+        protected unsafe virtual void InvokeCompileMethodToPrepare(IntPtr method)
+        {
             V21.CORINFO_METHOD_INFO methodInfo;
             byte* nativeStart;
             uint nativeSize;
@@ -111,12 +117,14 @@ namespace MonoMod.Core.Platforms.Runtimes {
         }
 
         // runtimes should override this if they need to significantly change the shape of CompileMethod
-        protected unsafe virtual Delegate CreateCompileMethodDelegate(IntPtr compileMethod) {
+        protected unsafe virtual Delegate CreateCompileMethodDelegate(IntPtr compileMethod)
+        {
             var del = new JitHookDelegateHolder(this, InvokeCompileMethodPtr, compileMethod).CompileMethodHook;
             return del;
         }
 
-        private sealed class JitHookDelegateHolder {
+        private sealed class JitHookDelegateHolder
+        {
             public readonly Core21Runtime Runtime;
             public readonly INativeExceptionHelper? NativeExceptionHelper;
             public readonly GetExceptionSlot? GetNativeExceptionSlot;
@@ -124,7 +132,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
             public readonly InvokeCompileMethodPtr InvokeCompileMethodPtr;
             public readonly IntPtr CompileMethodPtr;
 
-            public JitHookDelegateHolder(Core21Runtime runtime, InvokeCompileMethodPtr icmp, IntPtr compileMethod) {
+            public JitHookDelegateHolder(Core21Runtime runtime, InvokeCompileMethodPtr icmp, IntPtr compileMethod)
+            {
                 Runtime = runtime;
                 NativeExceptionHelper = runtime.NativeExceptionHelper;
                 JitHookHelpers = runtime.JitHookHelpers;
@@ -132,7 +141,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
                 CompileMethodPtr = compileMethod;
 
                 // eagerly call ICMP to ensure that it's JITted before installing the hook
-                unsafe {
+                unsafe
+                {
                     V21.CORINFO_METHOD_INFO methodInfo;
                     byte* nativeStart;
                     uint nativeSize;
@@ -141,7 +151,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
                 // and the same with MarshalEx.(Get/Set)LastPInvokeError
                 MarshalEx.SetLastPInvokeError(MarshalEx.GetLastPInvokeError());
                 // and the same for NativeExceptionHelper.NativeException { get; set; }
-                if (NativeExceptionHelper is { } neh) {
+                if (NativeExceptionHelper is { } neh)
+                {
                     GetNativeExceptionSlot = neh.GetExceptionSlot;
                     unsafe { _ = GetNativeExceptionSlot(); }
                 }
@@ -162,7 +173,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
                 V21.CORINFO_METHOD_INFO* methodInfo, // CORINFO_METHOD_INFO*
                 uint flags,
                 byte** pNativeEntry,
-                uint* pNativeSizeOfCode) {
+                uint* pNativeSizeOfCode)
+            {
 
                 *pNativeEntry = null;
                 *pNativeSizeOfCode = 0;
@@ -174,7 +186,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
                 nint nativeException = default;
                 var pNEx = GetNativeExceptionSlot is { } getNex ? getNex() : null;
                 hookEntrancy++;
-                try {
+                try
+                {
 
                     /* We've silenced any exceptions thrown by this in the past but it turns out this can throw?!
                      * Let's hope that all runtimes we're hooking the JIT of know how to deal with this - oh wait, not all do!
@@ -184,42 +197,53 @@ namespace MonoMod.Core.Platforms.Runtimes {
                     var result = InvokeCompileMethodPtr.InvokeCompileMethod(CompileMethodPtr,
                         jit, corJitInfo, methodInfo, flags, pNativeEntry, pNativeSizeOfCode);
                     // if a native exception was caught, return immediately and skip all of our normal processing
-                    if (pNEx is not null && (nativeException = *pNEx) is not 0) {
+                    if (pNEx is not null && (nativeException = *pNEx) is not 0)
+                    {
                         MMDbgLog.Warning($"Native exception caught in JIT by exception helper (ex: 0x{nativeException:x16})");
                         return result;
                     }
 
-                    if (hookEntrancy == 1) {
-                        try {
+                    if (hookEntrancy == 1)
+                    {
+                        try
+                        {
                             // This is the top level JIT entry point, do our custom stuff
                             RuntimeTypeHandle[]? genericClassArgs = null;
                             RuntimeTypeHandle[]? genericMethodArgs = null;
 
-                            if (methodInfo->args.sigInst.classInst != null) {
+                            if (methodInfo->args.sigInst.classInst != null)
+                            {
                                 genericClassArgs = new RuntimeTypeHandle[methodInfo->args.sigInst.classInstCount];
-                                for (var i = 0; i < genericClassArgs.Length; i++) {
+                                for (var i = 0; i < genericClassArgs.Length; i++)
+                                {
                                     genericClassArgs[i] = JitHookHelpers.GetTypeFromNativeHandle(methodInfo->args.sigInst.classInst[i]).TypeHandle;
                                 }
                             }
-                            if (methodInfo->args.sigInst.methInst != null) {
+                            if (methodInfo->args.sigInst.methInst != null)
+                            {
                                 genericMethodArgs = new RuntimeTypeHandle[methodInfo->args.sigInst.methInstCount];
-                                for (var i = 0; i < genericMethodArgs.Length; i++) {
+                                for (var i = 0; i < genericMethodArgs.Length; i++)
+                                {
                                     genericMethodArgs[i] = JitHookHelpers.GetTypeFromNativeHandle(methodInfo->args.sigInst.methInst[i]).TypeHandle;
                                 }
                             }
 
-                            RuntimeTypeHandle declaringType = JitHookHelpers.GetDeclaringTypeOfMethodHandle(methodInfo->ftn).TypeHandle;
-                            RuntimeMethodHandle method = JitHookHelpers.CreateHandleForHandlePointer(methodInfo->ftn);
+                            var declaringType = JitHookHelpers.GetDeclaringTypeOfMethodHandle(methodInfo->ftn).TypeHandle;
+                            var method = JitHookHelpers.CreateHandleForHandlePointer(methodInfo->ftn);
 
                             // codeStart and codeStartRw are the same because this runtime doesn't distinguish them at this point in the JIT
-                            Runtime.OnMethodCompiledCore(declaringType, method, genericClassArgs, genericMethodArgs, (IntPtr) (*pNativeEntry), (IntPtr) (*pNativeEntry), *pNativeSizeOfCode);
-                        } catch {
+                            Runtime.OnMethodCompiledCore(declaringType, method, genericClassArgs, genericMethodArgs, (IntPtr)(*pNativeEntry), (IntPtr)(*pNativeEntry), *pNativeSizeOfCode);
+                        }
+                        catch
+                        {
                             // eat the exception so we don't accidentally bubble up to native code
                         }
                     }
 
                     return result;
-                } finally {
+                }
+                finally
+                {
                     hookEntrancy--;
                     if (pNEx is not null)
                         *pNEx = nativeException;
@@ -228,7 +252,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
             }
         }
 
-        protected sealed class JitHookHelpersHolder {
+        protected sealed class JitHookHelpersHolder
+        {
             public delegate object MethodHandle_GetLoaderAllocatorD(IntPtr methodHandle);
             public delegate object CreateRuntimeMethodInfoStubD(IntPtr methodHandle, object loaderAllocator);
             public delegate RuntimeMethodHandle CreateRuntimeMethodHandleD(object runtimeMethodInfo);
@@ -244,7 +269,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
             public RuntimeMethodHandle CreateHandleForHandlePointer(IntPtr handle)
                 => CreateRuntimeMethodHandle(CreateRuntimeMethodInfoStub(handle, MethodHandle_GetLoaderAllocator(handle)));
 
-            public JitHookHelpersHolder(Core21Runtime runtime) {
+            public JitHookHelpersHolder(Core21Runtime runtime)
+            {
 
                 const BindingFlags StaticNonPublic = BindingFlags.Static | BindingFlags.NonPublic;
 
@@ -256,7 +282,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
                     MethodInfo invokeWrapper;
                     using (var dmd = new DynamicMethodDefinition(
                             "MethodHandle_GetLoaderAllocator", typeof(object), new Type[] { typeof(IntPtr) }
-                        )) {
+                        ))
+                    {
                         var il = dmd.GetILGenerator();
                         var paramType = getLoaderAllocator.GetParameters().First().ParameterType;
                         il.Emit(OpCodes.Ldarga_S, 0);
@@ -273,7 +300,7 @@ namespace MonoMod.Core.Platforms.Runtimes {
                 }
 
                 { // set up GetTypeFromNativeHandle
-                    MethodInfo getTypeFromHandleUnsafe = GetOrCreateGetTypeFromHandleUnsafe(runtime);
+                    var getTypeFromHandleUnsafe = GetOrCreateGetTypeFromHandleUnsafe(runtime);
                     GetTypeFromNativeHandle = getTypeFromHandleUnsafe.CreateDelegate<GetTypeFromNativeHandleD>();
                 }
 
@@ -286,7 +313,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
                     MethodInfo invokeWrapper;
                     using (var dmd = new DynamicMethodDefinition(
                             "GetDeclaringTypeOfMethodHandle", typeof(Type), new Type[] { typeof(IntPtr) }
-                        )) {
+                        ))
+                    {
                         var il = dmd.GetILGenerator();
                         il.Emit(OpCodes.Ldarga_S, 0);
                         // Unsafe.As shouldn't be needed
@@ -311,8 +339,9 @@ namespace MonoMod.Core.Platforms.Runtimes {
                     MethodInfo runtimeMethodInfoStubCtorWrapper;
                     using (var dmd = new DynamicMethodDefinition(
                             "new RuntimeMethodInfoStub", runtimeMethodInfoStub, runtimeMethodInfoStubCtorArgs
-                        )) {
-                        ILGenerator il = dmd.GetILGenerator();
+                        ))
+                    {
+                        var il = dmd.GetILGenerator();
                         il.Emit(OpCodes.Ldarg_0);
                         il.Emit(OpCodes.Ldarg_1);
                         il.Emit(OpCodes.Newobj, runtimeMethodInfoStubCtor);
@@ -325,13 +354,14 @@ namespace MonoMod.Core.Platforms.Runtimes {
                 }
 
                 { // set up CreateRuntimeMethodHandle
-                    ConstructorInfo ctor = typeof(RuntimeMethodHandle).GetConstructors(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).First();
+                    var ctor = typeof(RuntimeMethodHandle).GetConstructors(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).First();
 
                     MethodInfo ctorWrapper;
                     using (var dmd = new DynamicMethodDefinition(
                             "new RuntimeMethodHandle", typeof(RuntimeMethodHandle), new Type[] { typeof(object) }
-                        )) {
-                        ILGenerator il = dmd.GetILGenerator();
+                        ))
+                    {
+                        var il = dmd.GetILGenerator();
                         il.Emit(OpCodes.Ldarg_0);
                         il.Emit(OpCodes.Newobj, ctor);
                         il.Emit(OpCodes.Ret);
@@ -348,9 +378,10 @@ namespace MonoMod.Core.Platforms.Runtimes {
             /// The internal call always exists, but the managed method doesn't in some cases.
             /// </summary>
             /// <returns></returns>
-            private static MethodInfo GetOrCreateGetTypeFromHandleUnsafe(Core21Runtime runtime) {
+            private static MethodInfo GetOrCreateGetTypeFromHandleUnsafe(Core21Runtime runtime)
+            {
                 const string MethodName = "GetTypeFromHandleUnsafe";
-                var method = typeof(Type).GetMethod(MethodName, (BindingFlags) (-1));
+                var method = typeof(Type).GetMethod(MethodName, (BindingFlags)(-1));
 
                 if (method is not null)
                     return method;
@@ -361,12 +392,14 @@ namespace MonoMod.Core.Platforms.Runtimes {
                 using (var module = ModuleDefinition.CreateModule(
                     "MonoMod.Core.Platforms.Runtimes.Core30Runtime+Helpers",
                     new ModuleParameters() { Kind = ModuleKind.Dll }
-                )) {
+                ))
+                {
                     var sysType = new TypeDefinition(
                         "System",
                         "Type",
                         MC.TypeAttributes.Public | MC.TypeAttributes.Abstract
-                    ) {
+                    )
+                    {
                         BaseType = module.TypeSystem.Object
                     };
                     module.Types.Add(sysType);
@@ -375,7 +408,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
                         MethodName,
                         MC.MethodAttributes.Static | MC.MethodAttributes.Public,
                         module.ImportReference(typeof(Type))
-                    ) {
+                    )
+                    {
                         IsInternalCall = true
                     };
                     targetMethod.Parameters.Add(new(module.ImportReference(typeof(IntPtr))));
@@ -388,7 +422,7 @@ namespace MonoMod.Core.Platforms.Runtimes {
 
                 var type = assembly.GetType("System.Type");
                 Helpers.DAssert(type is not null);
-                method = type.GetMethod(MethodName, (BindingFlags) (-1));
+                method = type.GetMethod(MethodName, (BindingFlags)(-1));
                 Helpers.DAssert(method is not null);
                 return method;
             }
@@ -397,7 +431,8 @@ namespace MonoMod.Core.Platforms.Runtimes {
         private static readonly FieldInfo RuntimeAssemblyPtrField = Type.GetType("System.Reflection.RuntimeAssembly")!
             .GetField("m_assembly", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        protected virtual unsafe void MakeAssemblySystemAssembly(Assembly assembly) {
+        protected virtual unsafe void MakeAssemblySystemAssembly(Assembly assembly)
+        {
             // RuntimeAssembly.m_assembly is a DomainAssembly*,
             // which contains an Assembly*,
             // which contains a PEAssembly*,
@@ -406,7 +441,7 @@ namespace MonoMod.Core.Platforms.Runtimes {
 
             const int PEFILE_SYSTEM = 0x01;
 
-            var domAssembly = (IntPtr) RuntimeAssemblyPtrField.GetValue(assembly)!;
+            var domAssembly = (IntPtr)RuntimeAssemblyPtrField.GetValue(assembly)!;
 
             // DomainAssembly in src/coreclr/src/vm/domainfile.h
             var domOffset =
@@ -425,17 +460,18 @@ namespace MonoMod.Core.Platforms.Runtimes {
                 IntPtr.Size + // class UMThunkHash *m_pUMThunkHash;
                 sizeof(int) + // BOOL m_bDisableActivationCheck;
                 sizeof(int) + // DWORD m_dwReasonForRejectingNativeImage;
-                // #ifdef FEATURE_PREJIT Volatile<DomainFile*> m_pNextDomainFileWithNativeImage;
+                              // #ifdef FEATURE_PREJIT Volatile<DomainFile*> m_pNextDomainFileWithNativeImage;
                               // DomainAssembly
                 IntPtr.Size + // LOADERHANDLE                            m_hExposedAssemblyObject;
                 0; // here is our Assembly*
 
-            if (IntPtr.Size == 8) {
+            if (IntPtr.Size == 8)
+            {
                 domOffset +=
                     sizeof(int); // padding to align the next TADDR (which is a void*) (m_hExposedModuleObject)
             }
 
-            var pAssembly = *(IntPtr*) (((byte*) domAssembly) + domOffset);
+            var pAssembly = *(IntPtr*)(((byte*)domAssembly) + domOffset);
 
             // Assembly in src/coreclr/src/vm/assembly.hpp
             var pAssemOffset =
@@ -445,7 +481,7 @@ namespace MonoMod.Core.Platforms.Runtimes {
                 IntPtr.Size + // PTR_Module            m_pManifest;
                 0; // here is out PEAssembly* (m_pManifestFile)
 
-            var peAssembly = *(IntPtr*) (((byte*) pAssembly) + pAssemOffset);
+            var peAssembly = *(IntPtr*)(((byte*)pAssembly) + pAssemOffset);
 
             // PEAssembly in src/coreclr/src/vm/pefile.h
             var peAssemOffset =
@@ -457,12 +493,12 @@ namespace MonoMod.Core.Platforms.Runtimes {
                     sizeof(int) + // COUNT_T             m_size; // COUNT_T is a typedef of uint32_t
                     sizeof(int) + // COUNT_T             m_allocation;
                     sizeof(int) + // UINT32              m_flags;
-                    //sizeof(int) + // padding to 8 bytes
+                                  //sizeof(int) + // padding to 8 bytes
                     IntPtr.Size + // union { BYTE* m_buffer; WCHAR* m_asStr; };
                     sizeof(int) + // int                 m_revision
                                   // SString (itself empty, only base type SBuffer has data)
                                   // SString             m_debugName; // src/coreclr/vm/sstring.h
-                    //sizeof(int) + // padding to 8 bytes
+                                  //sizeof(int) + // padding to 8 bytes
                 0 : 0) +          // #endif
                 IntPtr.Size + // PTR_PEImage              m_identity;
                 IntPtr.Size + // PTR_PEImage              m_openedILimage;
@@ -475,11 +511,12 @@ namespace MonoMod.Core.Platforms.Runtimes {
                 sizeof(int) + // Volatile<LONG>           m_refCount; // fuck C long
                 0; // here is out int (flags)
 
-            if (IsDebugClr && IntPtr.Size == 8) {
+            if (IsDebugClr && IntPtr.Size == 8)
+            {
                 peAssemOffset += 2 * sizeof(int); // filled in padding
             }
 
-            var flags = (int*) (((byte*) peAssembly) + peAssemOffset);
+            var flags = (int*)(((byte*)peAssembly) + peAssemOffset);
             *flags |= PEFILE_SYSTEM;
         }
     }

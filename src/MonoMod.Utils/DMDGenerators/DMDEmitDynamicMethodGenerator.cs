@@ -1,11 +1,13 @@
-﻿using System;
+﻿using MonoMod.Logs;
+using System;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Linq;
-using MonoMod.Logs;
 
-namespace MonoMod.Utils {
-    public sealed class DMDEmitDynamicMethodGenerator : DMDGenerator<DMDEmitDynamicMethodGenerator> {
+namespace MonoMod.Utils
+{
+    public sealed class DMDEmitDynamicMethodGenerator : DMDGenerator<DMDEmitDynamicMethodGenerator>
+    {
 
         private static readonly FieldInfo _DynamicMethod_returnType =
             typeof(DynamicMethod).GetField("returnType", BindingFlags.NonPublic | BindingFlags.Instance) ??
@@ -13,35 +15,45 @@ namespace MonoMod.Utils {
             typeof(DynamicMethod).GetField("m_returnType", BindingFlags.NonPublic | BindingFlags.Instance)
             ?? throw new InvalidOperationException("Cannot find returnType field on DynamicMethod");
 
-        protected override MethodInfo GenerateCore(DynamicMethodDefinition dmd, object? context) {
+        protected override MethodInfo GenerateCore(DynamicMethodDefinition dmd, object? context)
+        {
             var orig = dmd.OriginalMethod;
             var def = dmd.Definition ?? throw new InvalidOperationException();
 
             Type[] argTypes;
 
-            if (orig != null) {
-                ParameterInfo[] args = orig.GetParameters();
+            if (orig != null)
+            {
+                var args = orig.GetParameters();
                 var offs = 0;
-                if (!orig.IsStatic) {
+                if (!orig.IsStatic)
+                {
                     offs++;
                     argTypes = new Type[args.Length + 1];
                     argTypes[0] = orig.GetThisParamType();
-                } else {
+                }
+                else
+                {
                     argTypes = new Type[args.Length];
                 }
                 for (var i = 0; i < args.Length; i++)
                     argTypes[i + offs] = args[i].ParameterType;
 
-            } else {
+            }
+            else
+            {
                 var offs = 0;
-                if (def.HasThis) {
+                if (def.HasThis)
+                {
                     offs++;
                     argTypes = new Type[def.Parameters.Count + 1];
-                    Type type = def.DeclaringType.ResolveReflection();
+                    var type = def.DeclaringType.ResolveReflection();
                     if (type.IsValueType)
                         type = type.MakeByRefType();
                     argTypes[0] = type;
-                } else {
+                }
+                else
+                {
                     argTypes = new Type[def.Parameters.Count];
                 }
                 for (var i = 0; i < def.Parameters.Count; i++)
@@ -49,8 +61,8 @@ namespace MonoMod.Utils {
             }
 
             // we do the (object?) dance using DebugFormatter to avoid internal StringBuilders in the ToString (and GetID) implementations which may cause problems
-            var name = dmd.Name ?? DebugFormatter.Format($"DMD<{(object?) orig ?? def.GetID(simple: true)}>");
-            Type retType = (orig as MethodInfo)?.ReturnType ?? def.ReturnType.ResolveReflection();
+            var name = dmd.Name ?? DebugFormatter.Format($"DMD<{(object?)orig ?? def.GetID(simple: true)}>");
+            var retType = (orig as MethodInfo)?.ReturnType ?? def.ReturnType.ResolveReflection();
 
             MMDbgLog.Trace($"new DynamicMethod: {retType} {name}({string.Join(",", argTypes.Select(type => type?.ToString()).ToArray())})");
             if (orig != null)
@@ -67,7 +79,7 @@ namespace MonoMod.Utils {
             // DynamicMethods don't officially "support" certain return types, such as ByRef types.
             _DynamicMethod_returnType.SetValue(dm, retType);
 
-            ILGenerator il = dm.GetILGenerator();
+            var il = dm.GetILGenerator();
 
             _DMDEmit.Generate(dmd, dm, il);
 

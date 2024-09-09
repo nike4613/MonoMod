@@ -1,12 +1,13 @@
 ﻿using MonoMod.Utils;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xunit;
 
-namespace MonoMod.UnitTest {
-    public class GenericComparisonTests {
+namespace MonoMod.UnitTest
+{
+    public class GenericComparisonTests
+    {
 
         [Theory]
         [InlineData(typeof(string), typeof(string))]
@@ -49,8 +50,9 @@ namespace MonoMod.UnitTest {
         [InlineData(typeof(ValueGenericA<GenericA<int>>), typeof(ValueGenericA<GenericA<string>>))]
         [InlineData(typeof(ValueGenericA<GenericA<int>>), typeof(ValueGenericA<GenericA<int?>>))]
         [InlineData(typeof(ValueGenericA<GenericA<int?>>), typeof(ValueGenericA<GenericA<int>>))]
-        public void TypesCompareEqual(Type a, Type b) {
-            IEqualityComparer<Type> comparer = new GenericTypeInstantiationComparer();
+        public void TypesCompareEqual(Type a, Type b)
+        {
+            var comparer = new GenericTypeInstantiationComparer();
             Assert.True(comparer.Equals(a, b));
             Assert.Equal(comparer.GetHashCode(a), comparer.GetHashCode(b));
         }
@@ -80,8 +82,9 @@ namespace MonoMod.UnitTest {
         [InlineData(typeof(GenericA<ValueGenericA<int>>), typeof(GenericA<ValueGenericA<string>>))]
         [InlineData(typeof(GenericA<ValueGenericA<int>>), typeof(GenericA<ValueGenericA<int?>>))]
         [InlineData(typeof(GenericA<ValueGenericA<int?>>), typeof(GenericA<ValueGenericA<int>>))]
-        public void TypesCompareInequal(Type a, Type b) {
-            IEqualityComparer<Type> comparer = new GenericTypeInstantiationComparer();
+        public void TypesCompareInequal(Type a, Type b)
+        {
+            var comparer = new GenericTypeInstantiationComparer();
             Assert.False(comparer.Equals(a, b));
         }
 
@@ -187,9 +190,11 @@ namespace MonoMod.UnitTest {
         [InlineData(typeof(ValueGenericA<int>), "G", typeof(int?), typeof(ValueGenericA<int>), "G", typeof(int?))]
         [InlineData(typeof(ValueGenericA<int?>), "G", typeof(int?), typeof(ValueGenericA<int?>), "G", typeof(int?))]
         // TODO: add cases that mix GenericA and ValueGenericA
-        public void MethodsCompareEqual(Type aDecl, string aName, Type? aParam, Type bDecl, string bName, Type? bParam) {
-            MethodInfo Method(Type decl, string name, Type genParam) {
-                MethodInfo info = Helpers.ThrowIfNull(decl).GetMethods().First(m => m.Name == name);
+        public void MethodsCompareEqual(Type aDecl, string aName, Type? aParam, Type bDecl, string bName, Type? bParam)
+        {
+            MethodInfo Method(Type decl, string name, Type genParam)
+            {
+                var info = Helpers.ThrowIfNull(decl).GetMethods().First(m => m.Name == name);
                 if (genParam != null)
                     info = info.MakeGenericMethod(genParam);
                 return info;
@@ -198,17 +203,19 @@ namespace MonoMod.UnitTest {
             MethodBase a = Method(aDecl, aName, aParam);
             MethodBase b = Method(bDecl, bName, bParam);
 
-            IEqualityComparer<MethodBase> comparer = new GenericMethodInstantiationComparer();
+            var comparer = new GenericMethodInstantiationComparer();
             Assert.True(comparer.Equals(a, b));
             Assert.Equal(comparer.GetHashCode(a), comparer.GetHashCode(b));
         }
 
 
-        private class GenericA<T> {
+        private class GenericA<T>
+        {
             public static void NG(T _) { }
             public static U G<U>(T _) => default;
         }
-        private struct ValueGenericA<T> {
+        private struct ValueGenericA<T>
+        {
             public static void NG(T _) { }
             public static U G<U>(T _) => default;
         }

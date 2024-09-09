@@ -176,7 +176,6 @@ ClientBin/
 *.publishsettings
 node_modules/
 orleans.codegen.cs
-docfx/
 
 # RIA/Silverlight projects
 Generated_Code/
@@ -234,3 +233,6 @@ ModelManifest.xml
 # Rider configuration files
 .idea/
 *.binlog
+*.dump
+
+.mono/

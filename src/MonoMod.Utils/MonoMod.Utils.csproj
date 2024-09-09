@@ -9,8 +9,11 @@
     <Nullable>enable</Nullable>
     <MMReferenceUtils>false</MMReferenceUtils>
 
-    <VersionPrefix>25.0.3</VersionPrefix>
-    <PackageValidationBaselineVersion>25.0.3</PackageValidationBaselineVersion>
+    <!-- Disable "Dispose objects before losing scope" because it utterly chokes on this project -->
+    <NoWarn>$(NoWarn);CA2000</NoWarn>
+
+    <VersionPrefix>25.0.7</VersionPrefix>
+    <PackageValidationBaselineVersion>25.0.0</PackageValidationBaselineVersion>
   </PropertyGroup>
   
   <!-- Dependencies -->

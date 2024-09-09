@@ -1,7 +1,5 @@
 ### **THIS IS PROBABLY NOT THE LIBRARY YOU WANT TO BE USING.** You probably want `RuntimeDetour` instead.
 
-You have been warned.
-
 ---
 
 ## Notable APIs
@@ -12,7 +10,7 @@ You have been warned.
 ## Usage
 
 Use `DetourFactory.Current.CreateDetour` to create a single detour from one method to another. The detour will be
-automatically undone when the returnedc object is disposed or garbage collected. Only one such detour may be made per
+automatically undone when the returned object is disposed or garbage collected. Only one such detour may be made per
 method. If multiple are made, they will not be cleaned up properly. `MonoMod.Core` does not track which methods have
 already been detoured, and will not throw.
 
@@ -20,6 +18,9 @@ It is therefore **highly recommended** to use a higher-level detouring API (like
 `MonoMod.RuntimeDetour` or `Harmony`) to perform detours. Those higher level APIs also provide solutions to many of
 the limitations to `Core`'s detour abstraction, such as the ability to call the original, unmodified method, or
 modify the IL of the method. (See their documentation for how this is actually done.)
+
+Additionally, interfaces in this package may have members added across minor version updates. Other version-based
+compatability guarantees are retained.
 
 ## Other potentially useful APIs
 

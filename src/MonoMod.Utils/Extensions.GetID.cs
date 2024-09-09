@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Mono.Cecil;
+using System;
 using System.Reflection;
-using Mono.Cecil;
 using System.Text;
-using Mono.Collections.Generic;
 
-namespace MonoMod.Utils {
-    public static partial class Extensions {
+namespace MonoMod.Utils
+{
+    public static partial class Extensions
+    {
 
         /// <summary>
         /// Get a reference ID that is similar to the full name, but consistent between System.Reflection and Mono.Cecil.
@@ -16,12 +17,14 @@ namespace MonoMod.Utils {
         /// <param name="withType">Whether the type ID should be included or not. System.Reflection avoids it by default.</param>
         /// <param name="simple">Whether the ID should be "simple" (name only).</param>
         /// <returns>The ID.</returns>
-        public static string GetID(this MethodReference method, string? name = null, string? type = null, bool withType = true, bool simple = false) {
+        public static string GetID(this MethodReference method, string? name = null, string? type = null, bool withType = true, bool simple = false)
+        {
             Helpers.ThrowIfArgumentNull(method);
 
             var builder = new StringBuilder();
 
-            if (simple) {
+            if (simple)
+            {
                 if (withType && (type != null || method.DeclaringType != null))
                     builder.Append(type ?? method.DeclaringType.GetPatchFullName()).Append("::");
                 builder.Append(name ?? method.Name);
@@ -38,20 +41,25 @@ namespace MonoMod.Utils {
             builder
                 .Append(name ?? method.Name);
 
-            if (method is GenericInstanceMethod gim && gim.GenericArguments.Count != 0) {
+            if (method is GenericInstanceMethod gim && gim.GenericArguments.Count != 0)
+            {
                 builder.Append('<');
-                Collection<TypeReference> arguments = gim.GenericArguments;
-                for (var i = 0; i < arguments.Count; i++) {
+                var arguments = gim.GenericArguments;
+                for (var i = 0; i < arguments.Count; i++)
+                {
                     if (i > 0)
                         builder.Append(',');
                     builder.Append(arguments[i].GetPatchFullName());
                 }
                 builder.Append('>');
 
-            } else if (method.GenericParameters.Count != 0) {
+            }
+            else if (method.GenericParameters.Count != 0)
+            {
                 builder.Append('<');
-                Collection<GenericParameter> arguments = method.GenericParameters;
-                for (var i = 0; i < arguments.Count; i++) {
+                var arguments = method.GenericParameters;
+                for (var i = 0; i < arguments.Count; i++)
+                {
                     if (i > 0)
                         builder.Append(',');
                     builder.Append(arguments[i].Name);
@@ -61,10 +69,12 @@ namespace MonoMod.Utils {
 
             builder.Append('(');
 
-            if (method.HasParameters) {
-                Collection<ParameterDefinition> parameters = method.Parameters;
-                for (var i = 0; i < parameters.Count; i++) {
-                    ParameterDefinition parameter = parameters[i];
+            if (method.HasParameters)
+            {
+                var parameters = method.Parameters;
+                for (var i = 0; i < parameters.Count; i++)
+                {
+                    var parameter = parameters[i];
                     if (i > 0)
                         builder.Append(',');
 
@@ -85,7 +95,8 @@ namespace MonoMod.Utils {
         /// </summary>
         /// <param name="method">The call site to get the ID for.</param>
         /// <returns>The ID.</returns>
-        public static string GetID(this Mono.Cecil.CallSite method) {
+        public static string GetID(this Mono.Cecil.CallSite method)
+        {
             Helpers.ThrowIfArgumentNull(method);
             var builder = new StringBuilder();
 
@@ -95,10 +106,12 @@ namespace MonoMod.Utils {
 
             builder.Append('(');
 
-            if (method.HasParameters) {
-                Collection<ParameterDefinition> parameters = method.Parameters;
-                for (var i = 0; i < parameters.Count; i++) {
-                    ParameterDefinition parameter = parameters[i];
+            if (method.HasParameters)
+            {
+                var parameters = method.Parameters;
+                for (var i = 0; i < parameters.Count; i++)
+                {
+                    var parameter = parameters[i];
                     if (i > 0)
                         builder.Append(',');
 
@@ -125,14 +138,16 @@ namespace MonoMod.Utils {
         /// <param name="proxyMethod">Whether the method is regarded as a proxy method or not. Setting this paramater to true will skip the first parameter.</param>
         /// <param name="simple">Whether the ID should be "simple" (name only).</param>
         /// <returns>The ID.</returns>
-        public static string GetID(this MethodBase method, string? name = null, string? type = null, bool withType = true, bool proxyMethod = false, bool simple = false) {
+        public static string GetID(this MethodBase method, string? name = null, string? type = null, bool withType = true, bool proxyMethod = false, bool simple = false)
+        {
             Helpers.ThrowIfArgumentNull(method);
             while (method is MethodInfo mi && method.IsGenericMethod && !method.IsGenericMethodDefinition)
                 method = mi.GetGenericMethodDefinition();
 
             var builder = new StringBuilder();
 
-            if (simple) {
+            if (simple)
+            {
                 if (withType && (type != null || method.DeclaringType != null))
                     builder.Append(type ?? method.DeclaringType!.FullName).Append("::");
                 builder.Append(name ?? method.Name);
@@ -149,10 +164,12 @@ namespace MonoMod.Utils {
             builder
                 .Append(name ?? method.Name);
 
-            if (method.ContainsGenericParameters) {
+            if (method.ContainsGenericParameters)
+            {
                 builder.Append('<');
-                Type[] arguments = method.GetGenericArguments();
-                for (var i = 0; i < arguments.Length; i++) {
+                var arguments = method.GetGenericArguments();
+                for (var i = 0; i < arguments.Length; i++)
+                {
                     if (i > 0)
                         builder.Append(',');
                     builder.Append(arguments[i].Name);
@@ -162,16 +179,20 @@ namespace MonoMod.Utils {
 
             builder.Append('(');
 
-            ParameterInfo[] parameters = method.GetParameters();
-            for (var i = proxyMethod ? 1 : 0; i < parameters.Length; i++) {
-                ParameterInfo parameter = parameters[i];
+            var parameters = method.GetParameters();
+            for (var i = proxyMethod ? 1 : 0; i < parameters.Length; i++)
+            {
+                var parameter = parameters[i];
                 if (i > (proxyMethod ? 1 : 0))
                     builder.Append(',');
 
                 bool defined;
-                try {
+                try
+                {
                     defined = parameter.GetCustomAttributes(t_ParamArrayAttribute, false).Length != 0;
-                } catch (NotSupportedException) {
+                }
+                catch (NotSupportedException)
+                {
                     // Newer versions of Mono are stupidly strict and like to throw a NotSupportedException on DynamicMethod args.
                     defined = false;
                 }

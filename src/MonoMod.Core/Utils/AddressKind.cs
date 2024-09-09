@@ -4,14 +4,16 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace MonoMod.Core.Utils {
+namespace MonoMod.Core.Utils
+{
     /// <summary>
     /// The kind of an address in a <see cref="BytePattern"/>.
     /// </summary>
     [Flags]
     [SuppressMessage("Design", "CA1008:Enums should have zero value",
         Justification = "There is no sensible meaning to a 'None' value, and Rel32 is a reasonable default.")]
-    public enum AddressKind {
+    public enum AddressKind
+    {
         /// <summary>
         /// A 32-bit relative address.
         /// </summary>
@@ -54,24 +56,25 @@ namespace MonoMod.Core.Utils {
     /// <summary>
     /// Extensions to <see cref="AddressKind"/>.
     /// </summary>
-    public static class AddressKindExtensions {
+    public static class AddressKindExtensions
+    {
 
         /// <summary>
         /// The <see cref="AddressKind"/> flag indicating that the kind is absolute.
         /// </summary>
-        public const AddressKind IsAbsoluteField = (AddressKind) 0b01;
+        public const AddressKind IsAbsoluteField = (AddressKind)0b01;
         /// <summary>
         /// The <see cref="AddressKind"/> flag indicating that the kind is 64-bit.
         /// </summary>
-        public const AddressKind Is64BitField = (AddressKind) 0b10;
+        public const AddressKind Is64BitField = (AddressKind)0b10;
         /// <summary>
         /// The <see cref="AddressKind"/> flag indicating that the kind is a <c>PrecodeFixupThunk</c> address.
         /// </summary>
-        public const AddressKind IsPrecodeFixupField = (AddressKind) 0b100;
+        public const AddressKind IsPrecodeFixupField = (AddressKind)0b100;
         /// <summary>
         /// The <see cref="AddressKind"/> flag indicating that the kind is indirect.
         /// </summary>
-        public const AddressKind IsIndirectField = (AddressKind) 0b1000;
+        public const AddressKind IsIndirectField = (AddressKind)0b1000;
 
         /// <summary>
         /// Gets whether or not this <see cref="AddressKind"/> is relative.
@@ -130,7 +133,8 @@ namespace MonoMod.Core.Utils {
         /// <param name="value">The value to validate.</param>
         /// <param name="argName">The name of the argument.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="value"/> is invalid.</exception>
-        public static void Validate(this AddressKind value, [CallerArgumentExpression("value")] string argName = "") {
+        public static void Validate(this AddressKind value, [CallerArgumentExpression("value")] string argName = "")
+        {
             if ((value & ~(IsAbsoluteField | Is64BitField | IsPrecodeFixupField | IsIndirectField)) != 0)
                 throw new ArgumentOutOfRangeException(argName);
         }

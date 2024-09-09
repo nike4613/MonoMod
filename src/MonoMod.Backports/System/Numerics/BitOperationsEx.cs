@@ -9,11 +9,13 @@
 
 using System.Runtime.CompilerServices;
 
-namespace System.Numerics {
+namespace System.Numerics
+{
     /// <summary>
     /// Extensions to <see cref="StringComparer"/> providing consistent access to APIs introduced after the type.
     /// </summary>
-    public static class BitOperationsEx {
+    public static class BitOperationsEx
+    {
         #region IsPow2
         /// <summary>
         /// Evaluate whether a given integral value is a power of 2.
@@ -159,10 +161,13 @@ namespace System.Numerics {
             => BitOperations.RoundUpToPowerOf2(value);
 #else
         {
-            if (IntPtr.Size == 8) {
-                return (nuint) RoundUpToPowerOf2((ulong) value);
-            } else {
-                return (nuint) RoundUpToPowerOf2((uint) value);
+            if (IntPtr.Size == 8)
+            {
+                return (nuint)RoundUpToPowerOf2((ulong)value);
+            }
+            else
+            {
+                return (nuint)RoundUpToPowerOf2((uint)value);
             }
         }
 #endif
@@ -199,10 +204,13 @@ namespace System.Numerics {
             => BitOperations.LeadingZeroCount(value);
 #else
         {
-            if (IntPtr.Size == 8) {
-                return LeadingZeroCount((ulong) value);
-            } else {
-                return LeadingZeroCount((uint) value);
+            if (IntPtr.Size == 8)
+            {
+                return LeadingZeroCount((ulong)value);
+            }
+            else
+            {
+                return LeadingZeroCount((uint)value);
             }
         }
 #endif
@@ -234,15 +242,18 @@ namespace System.Numerics {
         /// <param name="value">The value.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [CLSCompliant(false)]
-        public static int Log2(nuint value) 
+        public static int Log2(nuint value)
 #if HAS_NINT_VARIANTS
             => BitOperations.LeadingZeroCount(value);
 #else
         {
-            if (IntPtr.Size == 8) {
-                return Log2((ulong) value);
-            } else {
-                return Log2((uint) value);
+            if (IntPtr.Size == 8)
+            {
+                return Log2((ulong)value);
+            }
+            else
+            {
+                return Log2((uint)value);
             }
         }
 #endif
@@ -279,10 +290,13 @@ namespace System.Numerics {
             => BitOperations.PopCount(value);
 #else
         {
-            if (IntPtr.Size == 8) {
-                return PopCount((ulong) value);
-            } else {
-                return PopCount((uint) value);
+            if (IntPtr.Size == 8)
+            {
+                return PopCount((ulong)value);
+            }
+            else
+            {
+                return PopCount((uint)value);
             }
         }
 #endif
@@ -334,10 +348,13 @@ namespace System.Numerics {
             => BitOperations.TrailingZeroCount(value);
 #else
         {
-            if (IntPtr.Size == 8) {
-                return TrailingZeroCount((long) value);
-            } else {
-                return TrailingZeroCount((int) value);
+            if (IntPtr.Size == 8)
+            {
+                return TrailingZeroCount((long)value);
+            }
+            else
+            {
+                return TrailingZeroCount((int)value);
             }
         }
 #endif
@@ -354,10 +371,13 @@ namespace System.Numerics {
             => BitOperations.TrailingZeroCount(value);
 #else
         {
-            if (IntPtr.Size == 8) {
-                return TrailingZeroCount((ulong) value);
-            } else {
-                return TrailingZeroCount((uint) value);
+            if (IntPtr.Size == 8)
+            {
+                return TrailingZeroCount((ulong)value);
+            }
+            else
+            {
+                return TrailingZeroCount((uint)value);
             }
         }
 #endif
@@ -404,10 +424,13 @@ namespace System.Numerics {
             => BitOperations.RotateLeft(value, offset);
 #else
         {
-            if (IntPtr.Size == 8) {
-                return (nuint) RotateLeft((ulong) value, offset);
-            } else {
-                return (nuint) RotateLeft((uint) value, offset);
+            if (IntPtr.Size == 8)
+            {
+                return (nuint)RotateLeft((ulong)value, offset);
+            }
+            else
+            {
+                return (nuint)RotateLeft((uint)value, offset);
             }
         }
 #endif
@@ -454,10 +477,13 @@ namespace System.Numerics {
             => BitOperations.RotateLeft(value, offset);
 #else
         {
-            if (IntPtr.Size == 8) {
-                return (nuint) RotateRight((ulong) value, offset);
-            } else {
-                return (nuint) RotateRight((uint) value, offset);
+            if (IntPtr.Size == 8)
+            {
+                return (nuint)RotateRight((ulong)value, offset);
+            }
+            else
+            {
+                return (nuint)RotateRight((uint)value, offset);
             }
         }
 #endif

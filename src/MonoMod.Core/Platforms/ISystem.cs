@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace MonoMod.Core.Platforms {
+namespace MonoMod.Core.Platforms
+{
     /// <summary>
     /// Represents a host operating system.
     /// </summary>
-    public interface ISystem {
+    public interface ISystem
+    {
         /// <summary>
         /// Gets the <see cref="OSKind"/> which this instance represents.
         /// </summary>
@@ -25,7 +27,7 @@ namespace MonoMod.Core.Platforms {
         /// Gets the <see cref="IMemoryAllocator"/> for this OS.
         /// </summary>
         IMemoryAllocator MemoryAllocator { get; }
-        
+
         /// <summary>
         /// Gets the <see cref="INativeExceptionHelper"/> for this OS, if it is needed.
         /// </summary>
@@ -64,7 +66,8 @@ namespace MonoMod.Core.Platforms {
     /// <summary>
     /// The kind of data which exists at a location to be patched.
     /// </summary>
-    public enum PatchTargetKind {
+    public enum PatchTargetKind
+    {
         /// <summary>
         /// The data at the target is expected to be executable.
         /// </summary>

@@ -1,21 +1,25 @@
-﻿using Xunit;
-using MonoMod.Utils;
+﻿using MonoMod.Utils;
 using System;
 using System.Collections.Generic;
-using Xunit.Abstractions;
 using System.Runtime.CompilerServices;
+using Xunit;
+using Xunit.Abstractions;
 
-namespace MonoMod.UnitTest {
-    public class DynamicDataTest : TestBase {
-        public DynamicDataTest(ITestOutputHelper helper) : base(helper) {
+namespace MonoMod.UnitTest
+{
+    public class DynamicDataTest : TestBase
+    {
+        public DynamicDataTest(ITestOutputHelper helper) : base(helper)
+        {
         }
 
         [Fact]
-        public void TestDynamicDataByrefsVt() {
+        public void TestDynamicDataByrefsVt()
+        {
             var dict = new Dictionary<string, int>();
             using dynamic data = new DynamicData(dict);
 
-            Assert.Equal(dict, (Dictionary<string, int>) data);
+            Assert.Equal(dict, (Dictionary<string, int>)data);
 
             dict.Add("s", 5);
             Assert.True(dict.TryGetValue("s", out var addedVal1));
@@ -29,11 +33,12 @@ namespace MonoMod.UnitTest {
         }
 
         [Fact]
-        public void TestDynamicDataByrefsNullVt() {
+        public void TestDynamicDataByrefsNullVt()
+        {
             var dict = new Dictionary<string, int?>();
             using dynamic data = new DynamicData(dict);
 
-            Assert.Equal(dict, (Dictionary<string, int?>) data);
+            Assert.Equal(dict, (Dictionary<string, int?>)data);
 
             dict.Add("s", 5);
             Assert.True(dict.TryGetValue("s", out var addedVal1));
@@ -48,11 +53,12 @@ namespace MonoMod.UnitTest {
 
 
         [Fact]
-        public void TestDynamicDataByrefsRef() {
+        public void TestDynamicDataByrefsRef()
+        {
             var dict = new Dictionary<string, string>();
             using dynamic data = new DynamicData(dict);
 
-            Assert.Equal(dict, (Dictionary<string, string>) data);
+            Assert.Equal(dict, (Dictionary<string, string>)data);
 
             dict.Add("s", "5");
             Assert.True(dict.TryGetValue("s", out var addedVal1));
@@ -66,11 +72,12 @@ namespace MonoMod.UnitTest {
         }
 
         [Fact]
-        public void TestDynamicData() {
+        public void TestDynamicData()
+        {
             var dummy = new Dummy();
             using dynamic data = new DynamicData(dummy);
 
-            Assert.Equal(dummy, (Dummy) data);
+            Assert.Equal(dummy, (Dummy)data);
 
             Assert.Equal(69, data.A);
             Assert.Equal(420L, data.B);
@@ -86,7 +93,7 @@ namespace MonoMod.UnitTest {
             Assert.Equal("789", dummy._C);
             Assert.Equal("ABC", data.New);
 
-            data.RegisterMethod("NewMethod", new Func<object, object[], object>((target, args) => (int) args[0] * (int) args[1]));
+            data.RegisterMethod("NewMethod", new Func<object, object[], object>((target, args) => (int)args[0] * (int)args[1]));
             Assert.Equal(6, data.PublicMethod(4, 2));
             Assert.Equal(2, data.PrivateMethod(4, 2));
             Assert.Equal(16, data.PrivateBaseMethod(4, 2));
@@ -103,21 +110,24 @@ namespace MonoMod.UnitTest {
             using (var dyndata = new DynamicData(dummy))
                 Assert.Equal("World!", dyndata.Get<string>("Hello"));
 
-            Assert.Equal(dummy, DynamicData.Set(dummy, new {
+            Assert.Equal(dummy, DynamicData.Set(dummy, new
+            {
                 A = 10,
                 Other = "New"
             }));
             Assert.Equal(10, dummy.A);
             Assert.Equal("New", data.Other);
 
-            data.CopyFrom(new {
+            data.CopyFrom(new
+            {
                 A = 20,
                 Other = "Newer"
             });
             Assert.Equal(20, dummy.A);
             Assert.Equal("Newer", data.Other);
 
-            dummy = DynamicData.New<Dummy>()(new {
+            dummy = DynamicData.New<Dummy>()(new
+            {
                 A = 30,
                 B = 60L,
                 C = "90",
@@ -136,8 +146,9 @@ namespace MonoMod.UnitTest {
 
             using var dataTo = DynamicData.For(dummyTo);
             Assert.Equal(dataTo, DynamicData.For(dummyTo));
-            using (var dyndata = new DynamicData(dummy)) {
-                foreach (KeyValuePair<string, object> kvp in dyndata)
+            using (var dyndata = new DynamicData(dummy))
+            {
+                foreach (var kvp in dyndata)
                     dataTo.Set(kvp.Key, kvp.Value);
             }
             Assert.Equal(30, dummyTo.A);
@@ -149,13 +160,15 @@ namespace MonoMod.UnitTest {
 
 #pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable CA1822 // Mark members as static
-        private class DummyBase {
+        private class DummyBase
+        {
 
             private int PrivateBaseMethod(int a, int b) => a * b * b;
 
         }
 
-        private class Dummy : DummyBase {
+        private class Dummy : DummyBase
+        {
 
             public int A = 69;
             private long B = 420L;

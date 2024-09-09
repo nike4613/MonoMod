@@ -6,7 +6,8 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace MonoMod.RuntimeDetour {
+namespace MonoMod.RuntimeDetour
+{
 
     /// <summary>
     /// A detour type which allows the manipulation of the IL of a method, instead of merely changing its target.
@@ -17,7 +18,8 @@ namespace MonoMod.RuntimeDetour {
     /// extending its lifetime.
     /// </remarks>
     [CLSCompliant(false)] // TODO: remove when MM.Utils gets CLS compliance annotations
-    public sealed class ILHook : IILHook, IDisposable {
+    public sealed class ILHook : IILHook, IDisposable
+    {
         private const bool ApplyByDefault = true;
 
         // Note: We don't provide all variants with IDetourFactory because providing IDetourFactory is expected to be fairly rare
@@ -36,7 +38,7 @@ namespace MonoMod.RuntimeDetour {
         /// <param name="source">The method to modify the IL of.</param>
         /// <param name="manip">The manipulator to use to modify the method's IL.</param>
         public ILHook(Expression source, ILContext.Manipulator manip)
-            : this(((MethodCallExpression) Helpers.ThrowIfNull(source)).Method, manip) { }
+            : this(((MethodCallExpression)Helpers.ThrowIfNull(source)).Method, manip) { }
 
         /// <summary>
         /// Constructs an <see cref="ILHook"/> for the provided method using the provided manipulator.
@@ -62,7 +64,7 @@ namespace MonoMod.RuntimeDetour {
         /// <param name="manip">The manipulator to use to modify the method's IL.</param>
         /// <param name="applyByDefault">Whether or not this hook should be applied when the constructor finishes.</param>
         public ILHook(Expression source, ILContext.Manipulator manip, bool applyByDefault)
-            : this(((MethodCallExpression) Helpers.ThrowIfNull(source)).Method, manip, applyByDefault) { }
+            : this(((MethodCallExpression)Helpers.ThrowIfNull(source)).Method, manip, applyByDefault) { }
 
         /// <summary>
         /// Constructs an <see cref="ILHook"/> for the provided method using the provided manipulator.
@@ -90,7 +92,7 @@ namespace MonoMod.RuntimeDetour {
         /// <param name="manip">The manipulator to use to modify the method's IL.</param>
         /// <param name="config">The <see cref="DetourConfig"/> to use for this <see cref="ILHook"/>.</param>
         public ILHook(Expression source, ILContext.Manipulator manip, DetourConfig? config)
-            : this(((MethodCallExpression) Helpers.ThrowIfNull(source)).Method, manip, config) { }
+            : this(((MethodCallExpression)Helpers.ThrowIfNull(source)).Method, manip, config) { }
 
         /// <summary>
         /// Constructs an <see cref="ILHook"/> for the provided method using the provided manipulator and <see cref="DetourConfig"/>
@@ -121,8 +123,9 @@ namespace MonoMod.RuntimeDetour {
         /// <param name="config">The <see cref="DetourConfig"/> to use for this <see cref="ILHook"/>.</param>
         /// <param name="applyByDefault">Whether or not this hook should be applied when the constructor finishes.</param>
         public ILHook(Expression source, ILContext.Manipulator manip, DetourConfig? config, bool applyByDefault)
-            : this(((MethodCallExpression) Helpers.ThrowIfNull(source)).Method,
-                  manip, config, applyByDefault) { }
+            : this(((MethodCallExpression)Helpers.ThrowIfNull(source)).Method,
+                  manip, config, applyByDefault)
+        { }
 
         /// <summary>
         /// Constructs an <see cref="ILHook"/> for the provided method using the provided manipulator and <see cref="DetourConfig"/>
@@ -164,7 +167,8 @@ namespace MonoMod.RuntimeDetour {
         /// <param name="factory">The <see cref="IDetourFactory"/> to use when manipulating this <see cref="ILHook"/>.</param>
         /// <param name="config">The <see cref="DetourConfig"/> to use for this <see cref="ILHook"/>.</param>
         /// <param name="applyByDefault">Whether or not this hook should be applied when the constructor finishes.</param>
-        public ILHook(MethodBase method, ILContext.Manipulator manipulator, IDetourFactory factory, DetourConfig? config, bool applyByDefault) {
+        public ILHook(MethodBase method, ILContext.Manipulator manipulator, IDetourFactory factory, DetourConfig? config, bool applyByDefault)
+        {
             Helpers.ThrowIfArgumentNull(method);
             Helpers.ThrowIfArgumentNull(manipulator);
             Helpers.ThrowIfArgumentNull(factory);
@@ -179,7 +183,8 @@ namespace MonoMod.RuntimeDetour {
             state = DetourManager.GetDetourState(method);
             hook = new(this);
 
-            if (applyByDefault) {
+            if (applyByDefault)
+            {
                 Apply();
             }
         }
@@ -198,7 +203,8 @@ namespace MonoMod.RuntimeDetour {
         /// </summary>
         public ILHookInfo HookInfo => state.Info.GetILHookInfo(hook);
 
-        private void CheckDisposed() {
+        private void CheckDisposed()
+        {
             if (disposedValue)
                 throw new ObjectDisposedException(ToString());
         }
@@ -206,17 +212,21 @@ namespace MonoMod.RuntimeDetour {
         /// <summary>
         /// Applies this <see cref="ILHook"/> if it was not already applied.
         /// </summary>
-        public void Apply() {
+        public void Apply()
+        {
             CheckDisposed();
 
             var lockTaken = false;
-            try {
+            try
+            {
                 state.detourLock.Enter(ref lockTaken);
                 if (IsApplied)
                     return;
                 MMDbgLog.Trace($"Applying ILHook for {Method}");
                 state.AddILHook(hook, !lockTaken);
-            } finally {
+            }
+            finally
+            {
                 if (lockTaken)
                     state.detourLock.Exit(true);
             }
@@ -225,29 +235,36 @@ namespace MonoMod.RuntimeDetour {
         /// <summary>
         /// Undoes this <see cref="ILHook"/> if it was applied.
         /// </summary>
-        public void Undo() {
+        public void Undo()
+        {
             CheckDisposed();
 
             var lockTaken = false;
-            try {
+            try
+            {
                 state.detourLock.Enter(ref lockTaken);
                 if (!IsApplied)
                     return;
                 MMDbgLog.Trace($"Undoing ILHook for {Method}");
                 state.RemoveILHook(hook, !lockTaken);
-            } finally {
+            }
+            finally
+            {
                 if (lockTaken)
                     state.detourLock.Exit(true);
             }
         }
 
-        private void Dispose(bool disposing) {
-            if (!disposedValue && hook is not null) {
+        private void Dispose(bool disposing)
+        {
+            if (!disposedValue && hook is not null)
+            {
                 hook.IsValid = false;
                 if (!(AppDomain.CurrentDomain.IsFinalizingForUnload() || Environment.HasShutdownStarted))
                     Undo();
 
-                if (disposing) {
+                if (disposing)
+                {
                     // TODO: dispose managed state (managed objects)
                 }
 
@@ -265,7 +282,8 @@ namespace MonoMod.RuntimeDetour {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);

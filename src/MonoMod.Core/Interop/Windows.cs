@@ -5,12 +5,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace MonoMod.Core.Interop {
+namespace MonoMod.Core.Interop
+{
 
     // IMPORTANT: Instead of manually writing the interop code for Windows, we mostly use Microsoft.Windows.CsWin32 to generate them.
     // New Win32 methods should be added to NativeMethods.txt and used as Windows.Win32.Interop.*
 
-    internal static unsafe class Windows {
+    internal static unsafe class Windows
+    {
         // Definitions copied from source.terrafx.dev
 
         [Conditional("NEVER")]
@@ -18,7 +20,8 @@ namespace MonoMod.Core.Interop {
         private sealed class SetsLastSystemErrorAttribute : Attribute { }
         [Conditional("NEVER")]
         [AttributeUsage(AttributeTargets.All)]
-        private sealed class NativeTypeNameAttribute : Attribute {
+        private sealed class NativeTypeNameAttribute : Attribute
+        {
             public NativeTypeNameAttribute(string x) { }
         }
 
@@ -55,7 +58,8 @@ namespace MonoMod.Core.Interop {
         [return: NativeTypeName("DWORD")]
         public static extern uint GetLastError();
 
-        public unsafe partial struct MEMORY_BASIC_INFORMATION {
+        public unsafe partial struct MEMORY_BASIC_INFORMATION
+        {
             [NativeTypeName("PVOID")]
             public void* BaseAddress;
             [NativeTypeName("PVOID")]
@@ -76,7 +80,8 @@ namespace MonoMod.Core.Interop {
             public uint Type;
         }
 
-        public unsafe partial struct SYSTEM_INFO {
+        public unsafe partial struct SYSTEM_INFO
+        {
             [NativeTypeName("_SYSTEM_INFO::(anonymous union at C:/Program Files (x86)/Windows Kits/10/include/10.0.22621.0/um/sysinfoapi.h:48:5)")]
             public _Anonymous_e__Union Anonymous;
 
@@ -100,38 +105,46 @@ namespace MonoMod.Core.Interop {
             public ushort wProcessorRevision;
 
             [UnscopedRef]
-            public ref uint dwOemId {
+            public ref uint dwOemId
+            {
                 [MethodImpl(MethodImplOptionsEx.AggressiveInlining)]
-                get {
+                get
+                {
                     return ref Anonymous.dwOemId;
                 }
             }
 
             [UnscopedRef]
-            public ref ushort wProcessorArchitecture {
+            public ref ushort wProcessorArchitecture
+            {
                 [MethodImpl(MethodImplOptionsEx.AggressiveInlining)]
-                get {
+                get
+                {
                     return ref Anonymous.Anonymous.wProcessorArchitecture;
                 }
             }
 
             [UnscopedRef]
-            public ref ushort wReserved {
+            public ref ushort wReserved
+            {
                 [MethodImpl(MethodImplOptionsEx.AggressiveInlining)]
-                get {
+                get
+                {
                     return ref Anonymous.Anonymous.wReserved;
                 }
             }
 
             [StructLayout(LayoutKind.Explicit)]
-            public partial struct _Anonymous_e__Union {
+            public partial struct _Anonymous_e__Union
+            {
                 [FieldOffset(0)]
                 [NativeTypeName("DWORD")]
                 public uint dwOemId;
                 [FieldOffset(0)]
                 [NativeTypeName("_SYSTEM_INFO::(anonymous struct at C:/Program Files (x86)/Windows Kits/10/include/10.0.22621.0/um/sysinfoapi.h:50:9)")]
                 public _Anonymous_e__Struct Anonymous;
-                public partial struct _Anonymous_e__Struct {
+                public partial struct _Anonymous_e__Struct
+                {
                     [NativeTypeName("WORD")]
                     public ushort wProcessorArchitecture;
                     [NativeTypeName("WORD")]
@@ -140,10 +153,12 @@ namespace MonoMod.Core.Interop {
             }
         }
 
-        public readonly partial struct BOOL : IComparable, IComparable<BOOL>, IEquatable<BOOL>, IFormattable {
+        public readonly partial struct BOOL : IComparable, IComparable<BOOL>, IEquatable<BOOL>, IFormattable
+        {
             public readonly int Value;
 
-            public BOOL(int value) {
+            public BOOL(int value)
+            {
                 Value = value;
             }
 
@@ -173,46 +188,48 @@ namespace MonoMod.Core.Interop {
 
             public static implicit operator BOOL(byte value) => new BOOL(value);
 
-            public static explicit operator byte(BOOL value) => (byte) (value.Value);
+            public static explicit operator byte(BOOL value) => (byte)(value.Value);
 
             public static implicit operator BOOL(short value) => new BOOL(value);
 
-            public static explicit operator short(BOOL value) => (short) (value.Value);
+            public static explicit operator short(BOOL value) => (short)(value.Value);
 
             public static implicit operator BOOL(int value) => new BOOL(value);
 
             public static implicit operator int(BOOL value) => value.Value;
 
-            public static explicit operator BOOL(long value) => new BOOL(unchecked((int) (value)));
+            public static explicit operator BOOL(long value) => new BOOL(unchecked((int)(value)));
 
             public static implicit operator long(BOOL value) => value.Value;
 
-            public static explicit operator BOOL(nint value) => new BOOL(unchecked((int) (value)));
+            public static explicit operator BOOL(nint value) => new BOOL(unchecked((int)(value)));
 
             public static implicit operator nint(BOOL value) => value.Value;
 
             public static implicit operator BOOL(sbyte value) => new BOOL(value);
 
-            public static explicit operator sbyte(BOOL value) => (sbyte) (value.Value);
+            public static explicit operator sbyte(BOOL value) => (sbyte)(value.Value);
 
             public static implicit operator BOOL(ushort value) => new BOOL(value);
 
-            public static explicit operator ushort(BOOL value) => (ushort) (value.Value);
+            public static explicit operator ushort(BOOL value) => (ushort)(value.Value);
 
-            public static explicit operator BOOL(uint value) => new BOOL(unchecked((int) (value)));
+            public static explicit operator BOOL(uint value) => new BOOL(unchecked((int)(value)));
 
-            public static explicit operator uint(BOOL value) => (uint) (value.Value);
+            public static explicit operator uint(BOOL value) => (uint)(value.Value);
 
-            public static explicit operator BOOL(ulong value) => new BOOL(unchecked((int) (value)));
+            public static explicit operator BOOL(ulong value) => new BOOL(unchecked((int)(value)));
 
-            public static explicit operator ulong(BOOL value) => (ulong) (value.Value);
+            public static explicit operator ulong(BOOL value) => (ulong)(value.Value);
 
-            public static explicit operator BOOL(nuint value) => new BOOL(unchecked((int) (value)));
+            public static explicit operator BOOL(nuint value) => new BOOL(unchecked((int)(value)));
 
-            public static explicit operator nuint(BOOL value) => (nuint) (value.Value);
+            public static explicit operator nuint(BOOL value) => (nuint)(value.Value);
 
-            public int CompareTo(object? obj) {
-                if (obj is BOOL other) {
+            public int CompareTo(object? obj)
+            {
+                if (obj is BOOL other)
+                {
                     return CompareTo(other);
                 }
 
@@ -232,14 +249,16 @@ namespace MonoMod.Core.Interop {
             public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
         }
 
-        public readonly unsafe partial struct HANDLE : IComparable, IComparable<HANDLE>, IEquatable<HANDLE>, IFormattable {
+        public readonly unsafe partial struct HANDLE : IComparable, IComparable<HANDLE>, IEquatable<HANDLE>, IFormattable
+        {
             public readonly void* Value;
 
-            public HANDLE(void* value) {
+            public HANDLE(void* value)
+            {
                 Value = value;
             }
 
-            public static HANDLE INVALID_VALUE => new HANDLE((void*) (-1));
+            public static HANDLE INVALID_VALUE => new HANDLE((void*)(-1));
 
             public static HANDLE NULL => new HANDLE(null);
 
@@ -259,74 +278,76 @@ namespace MonoMod.Core.Interop {
 
             public static implicit operator void*(HANDLE value) => value.Value;
 
-            public static explicit operator HANDLE(byte value) => new HANDLE(unchecked((void*) (value)));
+            public static explicit operator HANDLE(byte value) => new HANDLE(unchecked((void*)(value)));
 
-            public static explicit operator byte(HANDLE value) => (byte) (value.Value);
+            public static explicit operator byte(HANDLE value) => (byte)(value.Value);
 
-            public static explicit operator HANDLE(short value) => new HANDLE(unchecked((void*) (value)));
+            public static explicit operator HANDLE(short value) => new HANDLE(unchecked((void*)(value)));
 
-            public static explicit operator short(HANDLE value) => (short) (value.Value);
+            public static explicit operator short(HANDLE value) => (short)(value.Value);
 
-            public static explicit operator HANDLE(int value) => new HANDLE(unchecked((void*) (value)));
+            public static explicit operator HANDLE(int value) => new HANDLE(unchecked((void*)(value)));
 
-            public static explicit operator int(HANDLE value) => (int) (value.Value);
+            public static explicit operator int(HANDLE value) => (int)(value.Value);
 
-            public static explicit operator HANDLE(long value) => new HANDLE(unchecked((void*) (value)));
+            public static explicit operator HANDLE(long value) => new HANDLE(unchecked((void*)(value)));
 
-            public static explicit operator long(HANDLE value) => (long) (value.Value);
+            public static explicit operator long(HANDLE value) => (long)(value.Value);
 
-            public static explicit operator HANDLE(nint value) => new HANDLE(unchecked((void*) (value)));
+            public static explicit operator HANDLE(nint value) => new HANDLE(unchecked((void*)(value)));
 
-            public static implicit operator nint(HANDLE value) => (nint) (value.Value);
+            public static implicit operator nint(HANDLE value) => (nint)(value.Value);
 
-            public static explicit operator HANDLE(sbyte value) => new HANDLE(unchecked((void*) (value)));
+            public static explicit operator HANDLE(sbyte value) => new HANDLE(unchecked((void*)(value)));
 
-            public static explicit operator sbyte(HANDLE value) => (sbyte) (value.Value);
+            public static explicit operator sbyte(HANDLE value) => (sbyte)(value.Value);
 
-            public static explicit operator HANDLE(ushort value) => new HANDLE(unchecked((void*) (value)));
+            public static explicit operator HANDLE(ushort value) => new HANDLE(unchecked((void*)(value)));
 
-            public static explicit operator ushort(HANDLE value) => (ushort) (value.Value);
+            public static explicit operator ushort(HANDLE value) => (ushort)(value.Value);
 
-            public static explicit operator HANDLE(uint value) => new HANDLE(unchecked((void*) (value)));
+            public static explicit operator HANDLE(uint value) => new HANDLE(unchecked((void*)(value)));
 
-            public static explicit operator uint(HANDLE value) => (uint) (value.Value);
+            public static explicit operator uint(HANDLE value) => (uint)(value.Value);
 
-            public static explicit operator HANDLE(ulong value) => new HANDLE(unchecked((void*) (value)));
+            public static explicit operator HANDLE(ulong value) => new HANDLE(unchecked((void*)(value)));
 
-            public static explicit operator ulong(HANDLE value) => (ulong) (value.Value);
+            public static explicit operator ulong(HANDLE value) => (ulong)(value.Value);
 
-            public static explicit operator HANDLE(nuint value) => new HANDLE(unchecked((void*) (value)));
+            public static explicit operator HANDLE(nuint value) => new HANDLE(unchecked((void*)(value)));
 
-            public static implicit operator nuint(HANDLE value) => (nuint) (value.Value);
+            public static implicit operator nuint(HANDLE value) => (nuint)(value.Value);
 
-            public int CompareTo(object? obj) {
-                if (obj is HANDLE other) {
+            public int CompareTo(object? obj)
+            {
+                if (obj is HANDLE other)
+                {
                     return CompareTo(other);
                 }
 
                 return (obj is null) ? 1 : throw new ArgumentException("obj is not an instance of HANDLE.");
             }
 
-            public int CompareTo(HANDLE other) 
+            public int CompareTo(HANDLE other)
                 => sizeof(nint) == 4
-                    ? ((uint) (Value)).CompareTo((uint) (other.Value))
-                    : ((ulong) (Value)).CompareTo((ulong) (other.Value));
+                    ? ((uint)(Value)).CompareTo((uint)(other.Value))
+                    : ((ulong)(Value)).CompareTo((ulong)(other.Value));
 
             public override bool Equals(object? obj) => (obj is HANDLE other) && Equals(other);
 
-            public bool Equals(HANDLE other) => ((nuint) (Value)).Equals((nuint) (other.Value));
+            public bool Equals(HANDLE other) => ((nuint)(Value)).Equals((nuint)(other.Value));
 
-            public override int GetHashCode() => ((nuint) (Value)).GetHashCode();
+            public override int GetHashCode() => ((nuint)(Value)).GetHashCode();
 
             public override string ToString()
                 => sizeof(nuint) == 4
-                    ? ((uint) (Value)).ToString("X8", null)
-                    : ((ulong) (Value)).ToString("X16", null);
+                    ? ((uint)(Value)).ToString("X8", null)
+                    : ((ulong)(Value)).ToString("X16", null);
 
-            public string ToString(string? format, IFormatProvider? formatProvider) 
-                => sizeof(nint) == 4 
-                    ? ((uint) (Value)).ToString(format, formatProvider)
-                    : ((ulong) (Value)).ToString(format, formatProvider);
+            public string ToString(string? format, IFormatProvider? formatProvider)
+                => sizeof(nint) == 4
+                    ? ((uint)(Value)).ToString(format, formatProvider)
+                    : ((ulong)(Value)).ToString(format, formatProvider);
         }
 
         [NativeTypeName("#define MEM_COMMIT 0x00001000")]
@@ -414,13 +435,13 @@ namespace MonoMod.Core.Interop {
         public const int MEM_EXTENDED_PARAMETER_IMAGE_NO_HPAT = 0x00000080;
 
         [NativeTypeName("#define MEM_EXTENDED_PARAMETER_NUMA_NODE_MANDATORY MINLONG64")]
-        public const long MEM_EXTENDED_PARAMETER_NUMA_NODE_MANDATORY = unchecked((long) (~((long) (((ulong) (~((ulong) (0)))) >> 1))));
+        public const long MEM_EXTENDED_PARAMETER_NUMA_NODE_MANDATORY = unchecked((long)(~((long)(((ulong)(~((ulong)(0)))) >> 1))));
 
         [NativeTypeName("#define MEM_EXTENDED_PARAMETER_TYPE_BITS 8")]
         public const int MEM_EXTENDED_PARAMETER_TYPE_BITS = 8;
 
         [NativeTypeName("#define MEM_DEDICATED_ATTRIBUTE_NOT_SPECIFIED ((DWORD64) -1)")]
-        public const ulong MEM_DEDICATED_ATTRIBUTE_NOT_SPECIFIED = unchecked((ulong) (-1));
+        public const ulong MEM_DEDICATED_ATTRIBUTE_NOT_SPECIFIED = unchecked((ulong)(-1));
 
         [NativeTypeName("#define MEM_PRIVATE 0x00020000")]
         public const int MEM_PRIVATE = 0x00020000;

@@ -1,12 +1,14 @@
-﻿using System;
-using System.Reflection;
-using System.Collections.Generic;
-using Mono.Cecil.Cil;
-using System.Collections.Concurrent;
+﻿using Mono.Cecil.Cil;
 using MonoMod.Logs;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Reflection;
 
-namespace MonoMod.Utils {
-    public static partial class Extensions {
+namespace MonoMod.Utils
+{
+    public static partial class Extensions
+    {
 
         private static readonly ConcurrentDictionary<Type, int> _GetManagedSizeCache = new(new[] {
             new KeyValuePair<Type, int>(typeof(void), 0)
@@ -26,9 +28,11 @@ namespace MonoMod.Utils {
         public static int GetManagedSize(this Type t)
             => _GetManagedSizeCache.GetOrAdd(Helpers.ThrowIfNull(t), ComputeManagedSize);
 
-        private static int ComputeManagedSize(Type t) {
+        private static int ComputeManagedSize(Type t)
+        {
             var szHelper = _GetManagedSizeHelper;
-            if (szHelper is null) {
+            if (szHelper is null)
+            {
                 _GetManagedSizeHelper = szHelper = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf))!;
             }
 
@@ -40,8 +44,9 @@ namespace MonoMod.Utils {
         /// </summary>
         /// <param name="method">The method to obtain the "this" parameter type from.</param>
         /// <returns>The "this" parameter type.</returns>
-        public static Type GetThisParamType(this MethodBase method) {
-            Type type = Helpers.ThrowIfNull(method).DeclaringType!;
+        public static Type GetThisParamType(this MethodBase method)
+        {
+            var type = Helpers.ThrowIfNull(method).DeclaringType!;
             if (type.IsValueType)
                 type = type.MakeByRefType();
             return type;
@@ -58,7 +63,8 @@ namespace MonoMod.Utils {
         /// </remarks>
         /// <param name="m">The method to get a native function pointer for.</param>
         /// <returns>The native function pointer.</returns>
-        public static IntPtr GetLdftnPointer(this MethodBase m) {
+        public static IntPtr GetLdftnPointer(this MethodBase m)
+        {
             Helpers.ThrowIfArgumentNull(m);
             if (_GetLdftnPointerCache.TryGetValue(m, out var func))
                 return func();
@@ -68,12 +74,13 @@ namespace MonoMod.Utils {
                 typeof(IntPtr), Type.EmptyTypes
             );
 
-            ILProcessor il = dmd.GetILProcessor();
+            var il = dmd.GetILProcessor();
             il.Emit(OpCodes.Ldftn, dmd.Definition.Module.ImportReference(m));
             il.Emit(OpCodes.Ret);
 
-            lock (_GetLdftnPointerCache) {
-                return (_GetLdftnPointerCache[m] = dmd.Generate().CreateDelegate<Func<IntPtr>>() as Func<IntPtr>)();
+            lock (_GetLdftnPointerCache)
+            {
+                return (_GetLdftnPointerCache[m] = dmd.Generate().CreateDelegate<Func<IntPtr>>())();
             }
         }
 

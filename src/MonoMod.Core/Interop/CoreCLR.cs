@@ -2,14 +2,18 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace MonoMod.Core.Interop {
-    internal static unsafe partial class CoreCLR {
-        public enum CorJitResult {
+namespace MonoMod.Core.Interop
+{
+    internal static unsafe partial class CoreCLR
+    {
+        public enum CorJitResult
+        {
             CORJIT_OK = 0,
             // There are more, but I don't particularly care about them
         }
 
-        public readonly struct InvokeCompileMethodPtr {
+        public readonly struct InvokeCompileMethodPtr
+        {
             private readonly IntPtr methodPtr;
             public InvokeCompileMethodPtr(
                 delegate*<
@@ -22,8 +26,9 @@ namespace MonoMod.Core.Interop {
                     uint*,
                     CorJitResult
                 > ptr
-            ) {
-                methodPtr = (IntPtr) ptr;
+            )
+            {
+                methodPtr = (IntPtr)ptr;
             }
 
             public delegate*<
@@ -35,7 +40,7 @@ namespace MonoMod.Core.Interop {
                     byte**,
                     uint*,
                     CorJitResult
-                > InvokeCompileMethod 
+                > InvokeCompileMethod
                 => (delegate*<
                     IntPtr, // method
                     IntPtr, // ICorJitCompiler*
@@ -45,12 +50,14 @@ namespace MonoMod.Core.Interop {
                     byte**,
                     uint*,
                     CorJitResult
-                >) methodPtr;
+                >)methodPtr;
         }
 
-        public class V21 {
+        public class V21
+        {
             [StructLayout(LayoutKind.Sequential)]
-            public struct CORINFO_SIG_INST {
+            public struct CORINFO_SIG_INST
+            {
                 public uint classInstCount;
                 public IntPtr* classInst; // CORINFO_CLASS_HANDLE* // (representative, not exact) instantiation for class type variables in signature
                 public uint methInstCount;
@@ -58,7 +65,8 @@ namespace MonoMod.Core.Interop {
             }
 
             [StructLayout(LayoutKind.Sequential)]
-            public struct CORINFO_SIG_INFO {
+            public struct CORINFO_SIG_INFO
+            {
                 public int callConv; // CorInfoCallConv
                 public IntPtr retTypeClass; // CORINFO_CLASS_HANDLE // if the return type is a value class, this is its handle (enums are normalized)
                 public IntPtr retTypeSigClass; // CORINFO_CLASS_HANDLE // returns the value class as it is in the sig (enums are not converted to primitives)
@@ -74,7 +82,8 @@ namespace MonoMod.Core.Interop {
             }
 
             [StructLayout(LayoutKind.Sequential)]
-            public struct CORINFO_METHOD_INFO {
+            public struct CORINFO_METHOD_INFO
+            {
                 public IntPtr ftn;   // CORINFO_METHOD_HANDLE
                 public IntPtr scope; // CORINFO_MODULE_HANDLE
                 public byte* ILCode;
@@ -108,9 +117,11 @@ namespace MonoMod.Core.Interop {
                 uint flags,
                 byte** pNativeEntry,
                 uint* pNativeSizeOfCode
-            ) {
+            )
+            {
                 // this is present so that we can pre-JIT this method by calling it
-                if (functionPtr == IntPtr.Zero) {
+                if (functionPtr == IntPtr.Zero)
+                {
                     *pNativeEntry = null;
                     *pNativeSizeOfCode = 0;
                     return CorJitResult.CORJIT_OK;
@@ -121,7 +132,7 @@ namespace MonoMod.Core.Interop {
                         IntPtr, IntPtr, CORINFO_METHOD_INFO*,
                         uint, byte**, uint*,
                         CorJitResult
-                    >) functionPtr;
+                    >)functionPtr;
 
                 return fnPtr(thisPtr, corJitInfo, methodInfo, flags, pNativeEntry, pNativeSizeOfCode);
             }

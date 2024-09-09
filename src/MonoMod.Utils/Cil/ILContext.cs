@@ -1,20 +1,22 @@
-﻿using System;
-using System.Reflection;
-using System.Collections.Generic;
-using Mono.Cecil;
+﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
-using MethodBody = Mono.Cecil.Cil.MethodBody;
-using System.Linq;
-using System.Collections.ObjectModel;
-using InstrList = Mono.Collections.Generic.Collection<Mono.Cecil.Cil.Instruction>;
 using MonoMod.Utils;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reflection;
 using System.Text;
+using InstrList = Mono.Collections.Generic.Collection<Mono.Cecil.Cil.Instruction>;
+using MethodBody = Mono.Cecil.Cil.MethodBody;
 
-namespace MonoMod.Cil {
+namespace MonoMod.Cil
+{
     /// <summary>
     /// An IL manipulation "context" with various helpers and direct access to the MethodBody.
     /// </summary>
-    public class ILContext : IDisposable {
+    public class ILContext : IDisposable
+    {
         /// <summary>
         /// The manipulator callback, accepted by the Invoke method.
         /// </summary>
@@ -61,7 +63,8 @@ namespace MonoMod.Cil {
         /// </summary>
         public event Action? OnDispose;
 
-        public ILContext(MethodDefinition method) {
+        public ILContext(MethodDefinition method)
+        {
             Helpers.ThrowIfArgumentNull(method);
             Method = method;
             IL = method.Body.GetILProcessor();
@@ -71,12 +74,14 @@ namespace MonoMod.Cil {
         /// Invoke a given manipulator callback.
         /// </summary>
         /// <param name="manip">The manipulator to run in this context.</param>
-        public void Invoke(Manipulator manip) {
+        public void Invoke(Manipulator manip)
+        {
             Helpers.ThrowIfArgumentNull(manip);
             if (IsReadOnly)
                 throw new InvalidOperationException();
 
-            foreach (Instruction instr in Instrs) {
+            foreach (var instr in Instrs)
+            {
                 if (instr.Operand is Instruction target)
                     instr.Operand = new ILLabel(this, target);
                 else if (instr.Operand is Instruction[] targets)
@@ -88,7 +93,8 @@ namespace MonoMod.Cil {
             if (IsReadOnly)
                 return;
 
-            foreach (Instruction instr in Instrs) {
+            foreach (var instr in Instrs)
+            {
                 if (instr.Operand is ILLabel label)
                     instr.Operand = label.Target;
                 else if (instr.Operand is ILLabel[] targets)
@@ -104,7 +110,8 @@ namespace MonoMod.Cil {
         /// <remarks>
         /// If the method is altered prior to calling MakeReadOnly or afterwards by accessing the method directly, the results are undefined.
         /// </remarks>
-        public void MakeReadOnly() {
+        public void MakeReadOnly()
+        {
             Method = null!;
             IL = null!;
             // Labels hold references to Instructions, which can keep
@@ -115,13 +122,13 @@ namespace MonoMod.Cil {
         }
 
         [Obsolete("Use new ILCursor(il).Goto(index)")]
-        public ILCursor At(int index) => 
+        public ILCursor At(int index) =>
             new ILCursor(this).Goto(index);
         [Obsolete("Use new ILCursor(il).Goto(index)")]
-        public ILCursor At(ILLabel label) => 
+        public ILCursor At(ILLabel label) =>
             new ILCursor(this).GotoLabel(label);
         [Obsolete("Use new ILCursor(il).Goto(index)")]
-        public ILCursor At(Instruction instr) => 
+        public ILCursor At(Instruction instr) =>
             new ILCursor(this).Goto(instr);
 
         /// <summary>
@@ -159,7 +166,8 @@ namespace MonoMod.Cil {
         /// </summary>
         /// <param name="instr">The instruction to get the index of.</param>
         /// <returns>The instruction index, or the end of the method body if it hasn't been found.</returns>
-        public int IndexOf(Instruction? instr) {
+        public int IndexOf(Instruction? instr)
+        {
             if (instr is null)
                 return Instrs.Count;
             var index = Instrs.IndexOf(instr);
@@ -180,26 +188,30 @@ namespace MonoMod.Cil {
         /// <typeparam name="T">The type of the object. The combination of typeparam and id provides the unique static reference.</typeparam>
         /// <param name="value">The object to store.</param>
         /// <returns>The id to use in combination with the typeparam for object retrieval.</returns>
-        public int AddReference<T>(in T? value) {
+        public int AddReference<T>(in T? value)
+        {
             var id = managedObjectRefs.Count;
             var scope = DynamicReferenceManager.AllocReference(in value, out _);
             managedObjectRefs.Add(scope);
             return id;
         }
 
-        public T? GetReference<T>(int id) {
+        public T? GetReference<T>(int id)
+        {
             if (id < 0 || id >= managedObjectRefs.Count)
                 throw new ArgumentOutOfRangeException(nameof(id));
             return DynamicReferenceManager.GetValue<T>(managedObjectRefs[id].Data);
         }
 
-        public void SetReference<T>(int id, in T? value) {
+        public void SetReference<T>(int id, in T? value)
+        {
             if (id < 0 || id >= managedObjectRefs.Count)
                 throw new ArgumentOutOfRangeException(nameof(id));
             DynamicReferenceManager.SetValue(managedObjectRefs[id].Data, in value);
         }
 
-        public DynamicReferenceCell GetReferenceCell(int id) {
+        public DynamicReferenceCell GetReferenceCell(int id)
+        {
             if (id < 0 || id >= managedObjectRefs.Count)
                 throw new ArgumentOutOfRangeException(nameof(id));
             return managedObjectRefs[id].Data;
@@ -209,7 +221,8 @@ namespace MonoMod.Cil {
         /// Obtain a string representation of this context (method ID and body).
         /// </summary>
         /// <returns>A string representation of this context.</returns>
-        public override string ToString() {
+        public override string ToString()
+        {
             if (Method == null)
                 return "// ILContext: READONLY";
 
@@ -219,13 +232,14 @@ namespace MonoMod.Cil {
             // Some of our targets don't have IFormatProvider-taking overloads.
             _ = builder.AppendLine($"// ILContext: {Method}");
 #pragma warning restore CA1305 // Specify IFormatProvider
-            foreach (Instruction instr in Instrs)
+            foreach (var instr in Instrs)
                 ToString(builder, instr);
 
             return builder.ToString();
         }
 
-        internal static StringBuilder ToString(StringBuilder builder, Instruction? instr) {
+        internal static StringBuilder ToString(StringBuilder builder, Instruction? instr)
+        {
             if (instr == null)
                 return builder;
 
@@ -241,12 +255,15 @@ namespace MonoMod.Cil {
             return builder;
         }
 
-        protected virtual void Dispose(bool disposing) {
-            if (!disposedValue) {
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
                 OnDispose?.Invoke();
                 OnDispose = null;
 
-                foreach (var scope in managedObjectRefs) {
+                foreach (var scope in managedObjectRefs)
+                {
                     scope.Dispose();
                 }
                 managedObjectRefs.Clear();
@@ -263,7 +280,8 @@ namespace MonoMod.Cil {
             Dispose(disposing: false);
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
