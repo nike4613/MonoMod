@@ -398,7 +398,7 @@ namespace MonoMod.SourceGen.Internal.Cil
                 if (skips.Contains(op))
                     continue;
 
-                var doc = explDoc?? GetOpcodeDoc(op, defs.SForms.AsImmutableArray().Contains(op));
+                var doc = explDoc ?? GetOpcodeDoc(op, defs.SForms.AsImmutableArray().Contains(op));
 
                 if (op.ArgumentType is null)
                 {

@@ -424,7 +424,7 @@ namespace MonoMod.Utils
                     // for reference types, we expect a WeakBox
                     expectType = typeof(WeakBox);
                     goto EmitTypeCheck;
-                    EmitTypeCheck:
+                EmitTypeCheck:
                     EmitCheckType(il, argId, expectType, badArgLbl);
                     break;
             }

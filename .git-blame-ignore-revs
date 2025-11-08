@@ -6,3 +6,6 @@ aa33ec226659683b0dfb4b8916e0b38e98930764
 
 # convert K&R-style to Allman style braces
 d283b32085fcf10e8775e0e03fc55e193c568e3b
+
+# dotnet format whitespace
+134f607e01db7e49ecf19d8b1f8c7515d4eafda0

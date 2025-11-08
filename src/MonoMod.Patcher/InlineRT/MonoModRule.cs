@@ -13,7 +13,7 @@ namespace MonoMod.InlineRT
 
             var retrying = false;
             ModuleDefinition to;
-            RETRY:
+        RETRY:
             if (toName + ".dll" == self.Module.Name)
                 to = self.Module;
             else if (self.DependencyCache.TryGetValue(toName, out to)) { }

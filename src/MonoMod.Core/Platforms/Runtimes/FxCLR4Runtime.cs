@@ -47,7 +47,7 @@ namespace MonoMod.Core.Platforms.Runtimes
             var handle = GetMethodHandle(method);
 
             var didPrepare = false;
-            GetPtr:
+        GetPtr:
             // we want to invoke _CompileMethod, not _PrepareMethod because _CompileMethod calls directly into DoPrestub, while _PrepareMethod
             // seems to skip prestub-intercepted remoting methods
             Helpers.Assert(TryInvokeBclCompileMethod(handle));

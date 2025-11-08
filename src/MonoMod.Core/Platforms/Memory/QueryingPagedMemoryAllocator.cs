@@ -152,7 +152,7 @@ namespace MonoMod.Core.Platforms.Memory
                 allocated = alloc;
                 return true;
 
-                Fail:
+            Fail:
                 // We're failing out, update the page address appropriately
                 if (goingUp)
                     page = baseAddr + allocSize;

@@ -459,8 +459,8 @@ namespace MonoMod.Core.Utils
             length = pos;
             return true;
 
-            // this is a JITted function size optimization to prevent duplicate epilogs
-            NoMatch:
+        // this is a JITted function size optimization to prevent duplicate epilogs
+        NoMatch:
             length = 0;
             return false;
         }

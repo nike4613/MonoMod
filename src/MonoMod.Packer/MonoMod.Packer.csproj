@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    
+    <MMSharedSourceFiles>false</MMSharedSourceFiles>
+    <WarningsAsErrors>$(WarningsAsErrors);RS0030</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="BannedSymbols.txt" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Remove="Mono.Cecil" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AsmResolver.DotNet" Version="6.0.0-beta.1" />
+  </ItemGroup>
+  
+</Project>
