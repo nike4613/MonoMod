@@ -1,0 +1,172 @@
+name: Dump experiments
+on:
+  push:
+    branches:
+    - ai/dump-experiments
+
+defaults:
+  run:
+    shell: bash --noprofile --norc {0}
+
+env:
+  DOTNET_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  mac14-rosetta-mono:
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v6
+    - name: Info
+      run: |
+        set -x
+        uname -m; sw_vers; xcode-select -p; lldb --version
+        MONO=$(which mono); echo "$MONO"; ls -l "$MONO"
+        REAL=$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$MONO"); echo "$REAL"
+        file "$REAL"; lipo -archs "$REAL" || true
+        head -c 200 "$REAL" | strings | head -5 || true
+        echo "MONO=$MONO" >> "$GITHUB_ENV"; echo "MONO_REAL=$REAL" >> "$GITHUB_ENV"
+        perl -e 'alarm shift; exec @ARGV' 60 mono --version | head -2
+    - name: "A: sync CLI launch"
+      run: |
+        perl -e 'alarm shift; exec @ARGV' 120 lldb -x -b -o 'settings set target.disable-aslr false' -o run -- "$MONO" --version; echo "rc=$?"
+    - name: "B: x86_64 lldb"
+      run: |
+        perl -e 'alarm shift; exec @ARGV' 120 arch -x86_64 lldb -x -b -o run -- "$MONO" --version; echo "rc=$?"
+    - name: "C: stop at entry then continue"
+      run: |
+        perl -e 'alarm shift; exec @ARGV' 120 lldb -x -b -o 'process launch -s' -o 'continue' -- "$MONO" --version; echo "rc=$?"
+    - name: "D: async SB API (driver)"
+      shell: pwsh
+      env:
+        DUMPS_PATH: ${{ runner.temp }}/dumps/
+        RWD_TIMEOUT_SECONDS: 30
+      run: |
+        $p = Start-Process pwsh -ArgumentList @('-NoProfile','-File','./.github/workflows/run-with-dumps.ps1', $env:MONO, '--version') -PassThru -NoNewWindow
+        if (-not $p.WaitForExit(150000)) { "TIMED OUT"; $p.Kill($true) } else { "rc=$($p.ExitCode)" }
+    - name: "E: sync SB API launch"
+      run: |
+        cat > "$RUNNER_TEMP/sync.py" <<'EOF'
+        import lldb, os, sys
+        def __lldb_init_module(debugger, d):
+            debugger.SetAsync(False)
+            t = debugger.CreateTarget(os.environ["MONO"])
+            print("triple", t.GetTriple(), flush=True)
+            info = lldb.SBLaunchInfo(["--version"])
+            info.SetLaunchFlags(info.GetLaunchFlags() & ~lldb.eLaunchFlagDisableASLR)
+            err = lldb.SBError()
+            p = t.Launch(info, err)
+            print("launch:", err.Success(), err, "state", lldb.SBDebugger.StateAsCString(p.GetState()), "exit", p.GetExitStatus(), flush=True)
+            os._exit(0)
+        EOF
+        perl -e 'alarm shift; exec @ARGV' 120 lldb -x -b -o "command script import $RUNNER_TEMP/sync.py"; echo "rc=$?"
+    - name: "F: attach to running translated process"
+      run: |
+        cat > "$RUNNER_TEMP/Sleep.cs" <<'EOF'
+        class S { static void Main() { System.Console.WriteLine("sleeping"); System.Threading.Thread.Sleep(60000); } }
+        EOF
+        csc -out:"$RUNNER_TEMP/Sleep.exe" "$RUNNER_TEMP/Sleep.cs" >/dev/null 2>&1 || mcs -out:"$RUNNER_TEMP/Sleep.exe" "$RUNNER_TEMP/Sleep.cs"
+        "$MONO" "$RUNNER_TEMP/Sleep.exe" & PID=$!
+        sleep 5
+        perl -e 'alarm shift; exec @ARGV' 120 lldb -x -b -p $PID -o 'thread list' -o 'process save-core -s modified-memory '"$RUNNER_TEMP/attach.core" -o 'kill'; echo "rc=$?"
+        ls -l "$RUNNER_TEMP"/*.core || true
+    - name: Leftover processes
+      if: always()
+      run: ps aux | grep -E 'lldb|debugserver|mono' | grep -v grep || true
+
+  mac-intel-coreclr:
+    runs-on: macos-15-intel
+    timeout-minutes: 40
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install .NET Core 3.1 runtime and build crash app
+      run: |
+        curl -sSL https://dot.net/v1/dotnet-install.sh -o "$RUNNER_TEMP/dotnet-install.sh"
+        bash "$RUNNER_TEMP/dotnet-install.sh" --channel 3.1 --runtime dotnet --install-dir "$RUNNER_TEMP/dotnet31" >/dev/null
+        bash "$RUNNER_TEMP/dotnet-install.sh" --channel 8.0 --runtime dotnet --install-dir "$RUNNER_TEMP/dotnet31" >/dev/null
+        cp -r exp/crash "$RUNNER_TEMP/crash" && cd "$RUNNER_TEMP/crash" && dotnet build -c Release | tail -3
+        ls bin/Release
+    - name: Info
+      run: |
+        set -x
+        sysctl kern.coredump kern.corefile kern.sugid_coredump || true
+        ls -ld /cores; ls -l /cores || true
+        codesign -dv --entitlements - "$RUNNER_TEMP/dotnet31/dotnet" 2>&1 | tail -20 || true
+    - name: "Kernel core: plain C program"
+      run: |
+        printf 'int main(){*(volatile int*)0=0;return 0;}' > "$RUNNER_TEMP/segv.c" && cc -o "$RUNNER_TEMP/segv" "$RUNNER_TEMP/segv.c"
+        ulimit -c unlimited; "$RUNNER_TEMP/segv"; echo "rc=$?"; ls -l /cores || true
+    - name: "Kernel core: .NET Core 3.1 FailFast, no dump env"
+      run: |
+        ulimit -c unlimited; "$RUNNER_TEMP/dotnet31/dotnet" "$RUNNER_TEMP/crash/bin/Release/netcoreapp3.1/crash.dll" failfast; echo "rc=$?"; ls -l /cores || true
+    - name: "Kernel core: .NET Core 3.1 FailFast, vstest-like dump env"
+      env:
+        COMPlus_DbgEnableMiniDump: 1
+        COMPlus_DbgEnableElfDumpOnMacOS: 1
+        COMPlus_DbgMiniDumpType: 4
+        COMPlus_DbgMiniDumpName: ${{ runner.temp }}/dumps/%e_%p_%t_crashdump.dmp
+      run: |
+        mkdir -p "$RUNNER_TEMP/dumps"; ulimit -c unlimited
+        "$RUNNER_TEMP/dotnet31/dotnet" "$RUNNER_TEMP/crash/bin/Release/netcoreapp3.1/crash.dll" failfast; echo "rc=$?"
+        ls -l /cores "$RUNNER_TEMP/dumps" || true
+    - name: "LLDB driver: .NET Core 3.1 FailFast"
+      shell: pwsh
+      env:
+        DUMPS_PATH: ${{ runner.temp }}/rwd/
+        RWD_TIMEOUT_SECONDS: 60
+      run: |
+        ./.github/workflows/run-with-dumps.ps1 "$env:RUNNER_TEMP/dotnet31/dotnet" "$env:RUNNER_TEMP/crash/bin/Release/netcoreapp3.1/crash.dll" failfast
+        "rc=$LastExitCode"
+        Get-ChildItem $env:DUMPS_PATH | Format-Table Name, Length
+    - name: "createdump timing: .NET 8 x64, type 4 vs 2"
+      run: |
+        for t in 4 2; do
+          rm -rf "$RUNNER_TEMP/cd$t"; mkdir -p "$RUNNER_TEMP/cd$t"
+          start=$(date +%s)
+          DOTNET_DbgEnableMiniDump=1 DOTNET_DbgMiniDumpType=$t DOTNET_DbgMiniDumpName="$RUNNER_TEMP/cd$t/%e_%p.dmp" \
+            DOTNET_ReadyToRun=0 DOTNET_TieredPGO=1 \
+            "$RUNNER_TEMP/dotnet31/dotnet" "$RUNNER_TEMP/crash/bin/Release/net8.0/crash.dll" failfast >/dev/null 2>&1
+          echo "type $t: $(( $(date +%s) - start ))s"; ls -l "$RUNNER_TEMP/cd$t"
+        done
+
+  windows-wer:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+    - uses: actions/checkout@v6
+    - name: Info
+      run: |
+        Get-Service WerSvc | Format-List Name, Status, StartType
+        Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting' -ErrorAction SilentlyContinue | Format-List
+        Get-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting' -ErrorAction SilentlyContinue | Format-List
+    - name: Configure WER LocalDumps
+      run: |
+        $dumps = "$env:RUNNER_TEMP\dumps"; New-Item -Type Directory -Force $dumps | Out-Null
+        $key = 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps'
+        New-Item -Path $key -Force | Out-Null
+        New-ItemProperty -Path $key -Name DumpType -PropertyType DWord -Value 2 -Force | Out-Null
+        New-ItemProperty -Path $key -Name DumpCount -PropertyType DWord -Value 10 -Force | Out-Null
+        New-ItemProperty -Path $key -Name DumpFolder -PropertyType ExpandString -Value $dumps -Force | Out-Null
+        Get-ItemProperty $key | Format-List
+    - name: Build crash apps
+      run: |
+        Copy-Item -Recurse exp/crash "$env:RUNNER_TEMP/crash"
+        & "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo "/out:$env:RUNNER_TEMP\fx64.exe" "$env:RUNNER_TEMP\crash\Program.cs"
+        & "$env:WINDIR\Microsoft.NET\Framework\v4.0.30319\csc.exe" /nologo /platform:x86 "/out:$env:RUNNER_TEMP\fx86.exe" "$env:RUNNER_TEMP\crash\Program.cs"
+        dotnet build "$env:RUNNER_TEMP/crash" -c Release -f net8.0 | Select-Object -Last 3
+    - name: Crash them
+      run: |
+        foreach ($c in @(@("$env:RUNNER_TEMP\fx64.exe"), @("$env:RUNNER_TEMP\fx86.exe"), @('dotnet', "$env:RUNNER_TEMP\crash\bin\Release\net8.0\crash.dll"))) {
+          foreach ($m in 'failfast', 'throw') {
+            $exe, $rest = $c
+            & $exe @rest $m 2>&1 | Select-Object -First 2
+            "$($c[-1]) $m => $LastExitCode"
+            Start-Sleep 5
+          }
+        }
+        Get-ChildItem "$env:RUNNER_TEMP\dumps" | Format-Table Name, Length
