@@ -282,12 +282,24 @@ namespace MonoMod.Core.Platforms.Architectures.AltEntryFactories
             insn = default;
             insn.TargetIndex = -1;
 
+            // All references will be to "Intel 64 and IA-32 Architectures Software Developer's Manual"
+
             var pos = 0;
+            // operand-size prefix (Vol.1 3-19)
             var p66 = false;
+            // address-size prefix (Vol.1 3-19)
             var p67 = false;
+            // REPNE/REPNZ (Vol.2A 2-1) or BND prefix (Vol.2 2-2)
             var pF2 = false;
+            // REP/REPE/REPZ (Vol.2A 2-1)
+            var pF3 = false;
+
             var vexInvalidPrefix = false;
+
+            // note: REX is ignored if it does not immediately precede the opcode byte or escape opcode byte.
+            // (Vol.2A 2-8)
             byte rex = 0;
+
             byte b;
 
             // legacy prefixes; a REX prefix is only effective if it immediately precedes the opcode
@@ -296,29 +308,46 @@ namespace MonoMod.Core.Platforms.Architectures.AltEntryFactories
                 b = Next(code, ref pos, ip);
                 switch (b)
                 {
+                    // segment override prefixes (Vol.2A 2-2)
                     case 0x26 or 0x2E or 0x36 or 0x3E or 0x64 or 0x65:
                         rex = 0;
                         continue;
-                    case 0xF0 or 0xF3:
+                    // LOCK prefix (Vol.2A 2-1)
+                    case 0xF0:
+                        // Vol.2A sec. 2.3.2
                         vexInvalidPrefix = true;
                         rex = 0;
                         continue;
+                    // REPNE/REPNZ prefix (Vol.2A 2-1)
+                    case 0xF2:
+                        pF2 = true;
+                        // Vol.2A sec. 2.3.3
+                        vexInvalidPrefix = true;
+                        rex = 0;
+                        continue;
+                    // REP/REPE/REPZ (Vol.2A 2-1)
+                    case 0xF3:
+                        pF3 = true;
+                        // Vol.2A sec. 2.3.3
+                        vexInvalidPrefix = true;
+                        rex = 0;
+                        continue;
+                    // operand-size prefix 66h (Vol.1 3-19)
                     case 0x66:
+                        // rex.w, if specified, takes precedence
                         p66 = true;
+                        // Vol.2A sec. 2.3.3
                         vexInvalidPrefix = true;
                         rex = 0;
                         continue;
+                    // address-size prefix 67h (Vol.1 3-19)
                     case 0x67:
                         p67 = true;
                         rex = 0;
                         continue;
-                    case 0xF2:
-                        pF2 = true;
-                        vexInvalidPrefix = true;
-                        rex = 0;
-                        continue;
                 }
 
+                // REX prefix (Vol.2A 2-7)
                 if (is64 && (b & 0xF0) == 0x40)
                 {
                     rex = b;
@@ -374,23 +403,30 @@ namespace MonoMod.Core.Platforms.Architectures.AltEntryFactories
             }
             else if ((b is 0xC4 or 0xC5 or 0x62) && (is64 || code[pos] >= 0xC0))
             {
+                // VEX prefix C4/C5 (Vol.2A 2-13 sec. 2.3.5) 
+                // C5 is 2-byte form, C4 is 3-byte form
                 // VEX (C4/C5) or EVEX (62). Outside 64-bit mode, these are LES/LDS/BOUND unless the following byte has mod == 11.
+
+                // Vol.2A sec. 2.3.4
                 if (rex != 0 || vexInvalidPrefix)
                     throw Unsupported(ip, "VEX/EVEX with REX, 66, F2, F3, or LOCK prefix");
 
                 int map;
                 if (b == 0xC5)
                 {
+                    // 2-byte encoding form, see (Vol.2A 2-15)
                     _ = Next(code, ref pos, ip);
                     map = 1;
                 }
                 else if (b == 0xC4)
                 {
+                    // 3-byte encoding form, see (Vol.2A 2-15)
                     map = Next(code, ref pos, ip) & 0x1F;
                     _ = Next(code, ref pos, ip);
                 }
                 else
                 {
+                    // EVEX
                     map = Next(code, ref pos, ip) & 0x07;
                     var p1 = Next(code, ref pos, ip);
                     _ = Next(code, ref pos, ip);
@@ -402,6 +438,7 @@ namespace MonoMod.Core.Platforms.Architectures.AltEntryFactories
                     }
                 }
 
+                // followed by exactly one opcode byte (Vol.2A 2-19 sec. 2.3.7)
                 opcode = Next(code, ref pos, ip);
                 op = map switch
                 {
