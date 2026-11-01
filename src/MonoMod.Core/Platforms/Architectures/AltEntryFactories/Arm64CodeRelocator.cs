@@ -88,39 +88,65 @@ namespace MonoMod.Core.Platforms.Architectures.AltEntryFactories
         {
             var insn = new Arm64Instruction { Raw = raw, TargetIndex = -1 };
 
+            // page references are from "Arm Architecture Reference Manual for A-profile architecture"
+            // a.k.a. ARM DDI 0487 version M.d
+
+            // section C6.1.2 (C6-1801) states:
+            // A64 instructions have limited access to the PC. The only instructions that can read the PC
+            // are those that generate a PC relative address:
+            // - ADR and ADRP.
+            // - The Load register (literal) instruction class.
+            // - Direct branches that use an immediate offset.
+            // - The unconditional branch with link instructions, BL and BLR, that use the PC to create the return link address.
+
+            // page C4-818
             if ((raw & 0x7C000000) == 0x14000000)
             {
                 // B / BL imm26
                 insn.Kind = (raw & 0x80000000) != 0 ? Arm64RelocKind.BranchLink : Arm64RelocKind.Branch;
                 insn.Target = pc + (ulong)(SignExtend(raw & 0x03FFFFFF, 26) << 2);
             }
+            // page C4-811
             else if ((raw & 0xFF000000) == 0x54000000)
             {
-                // B.cond / BC.cond imm19; AL and NV always branch
+                // B.cond / BC.cond imm19
+                // condition code in low 4 bits, B/BC switched on bit (1 << 4)
+                // condition code 0xE=AL and 0xF=NL are "always" conditions, which we will reencode as normal unconditional branches
                 insn.Kind = (raw & 0xE) == 0xE ? Arm64RelocKind.Branch : Arm64RelocKind.ConditionalBranch;
                 insn.Target = pc + (ulong)(SignExtend((raw >> 5) & 0x7FFFF, 19) << 2);
             }
+            // page C4-819
             else if ((raw & 0x7E000000) == 0x34000000)
             {
-                // CBZ / CBNZ imm19
+                // CBZ / CBNZ Rt, imm19
+                // low 5 bits are Rt, middle 19 are immediate (C6-1943)
                 insn.Kind = Arm64RelocKind.ConditionalBranch;
                 insn.Target = pc + (ulong)(SignExtend((raw >> 5) & 0x7FFFF, 19) << 2);
             }
+            // page C4-819
             else if ((raw & 0x7E000000) == 0x36000000)
             {
-                // TBZ / TBNZ imm14
+                // TBZ / TBNZ Rt, #imm, imm14
+                // low 5 bits are Rt, next 14 bits are branch offset 
+                // bits [31,23:19] are valute to be tested (C6-2865)
                 insn.Kind = Arm64RelocKind.ConditionalBranch;
                 insn.Target = pc + (ulong)(SignExtend((raw >> 5) & 0x3FFF, 14) << 2);
             }
+            // page C4-812
+            // page C4-819
+            // page C4-820
             else if ((raw & 0x7E000000) == 0x74000000)
             {
                 // FEAT_CMPBR CB<cc> / CBB<cc> / CBH<cc> imm9 (Armv9.6); every form keeps imm9 in [13:5]
+                // all instruction variants have same branch target location, 
                 insn.Kind = Arm64RelocKind.ConditionalBranch;
                 insn.Target = pc + (ulong)(SignExtend((raw >> 5) & 0x1FF, 9) << 2);
             }
+            // page C6-1828
             else if ((raw & 0x1F000000) == 0x10000000)
             {
-                // ADR / ADRP imm21
+                // ADR / ADRP Rd, imm21
+                // bits [23:5,30:29] hold the immediate, low 5 bits hold the target register
                 var imm = SignExtend(((raw >> 5) & 0x7FFFF) << 2 | ((raw >> 29) & 3), 21);
                 if ((raw & 0x80000000) == 0)
                 {
@@ -133,6 +159,7 @@ namespace MonoMod.Core.Platforms.Architectures.AltEntryFactories
                     insn.Target = (pc & ~0xFFFUL) + (ulong)(imm << 12);
                 }
             }
+            // page C4-898
             else if ((raw & 0x3B000000) == 0x18000000)
             {
                 // LDR (literal), LDRSW (literal), PRFM (literal) imm19
@@ -157,11 +184,12 @@ namespace MonoMod.Core.Platforms.Architectures.AltEntryFactories
             {
                 size += insns[i].Kind switch
                 {
-                    Arm64RelocKind.Branch => BranchAbsoluteSize + 4,
-                    Arm64RelocKind.BranchLink => BranchLinkAbsoluteSize + 4,
-                    Arm64RelocKind.ConditionalBranch => 8 + BranchAbsoluteSize + 4,
-                    Arm64RelocKind.Adr or Arm64RelocKind.Adrp => 16,
-                    Arm64RelocKind.LoadLiteral => NeedsScratchForLiteral(insns[i].Raw) ? 36 : 20,
+                    Arm64RelocKind.Branch => BranchAbsoluteSize + 4, // base size + alignment (if needed)
+                    Arm64RelocKind.BranchLink => BranchLinkAbsoluteSize + 4, // same as above
+                    Arm64RelocKind.ConditionalBranch => 8 + BranchAbsoluteSize + 4, // base size + branch-past + alignment
+                    Arm64RelocKind.Adr or Arm64RelocKind.Adrp => 16, // at worst, a 4-ins movk sequence
+                    Arm64RelocKind.LoadLiteral => NeedsScratchForLiteral(insns[i].Raw) ? 36 : 20, 
+                    // ^^^ build+clear stack frame for x17 save, movabs, ldr
                     _ => 4,
                 };
             }
@@ -202,6 +230,7 @@ namespace MonoMod.Core.Platforms.Architectures.AltEntryFactories
                 offset += GetSize(insn);
             }
 
+            // inject the return branch using the same logic
             var back = new Arm64Instruction { Raw = BranchOpcode, Kind = Arm64RelocKind.Branch, Target = srcPc + blockLength, TargetIndex = -1, NewOffset = offset };
             ChooseForm(ref back, dstPc + (ulong)offset);
             var totalSize = offset + GetSize(back);
